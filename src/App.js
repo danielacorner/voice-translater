@@ -7,8 +7,9 @@ import {
   FormControl,
 } from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
+import MicOffIcon from "@material-ui/icons/MicOff";
 import ResetIcon from "@material-ui/icons/Replay";
-import PauseIcon from "@material-ui/icons/Pause";
+import TranslateIcon from "@material-ui/icons/Translate";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import { AppStyles } from "./AppStyles";
 import { getTranslation } from "./utils/translate";
@@ -24,11 +25,10 @@ function App() {
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
-  const [translationTarget, setTranslationTarget] = useState(null);
+  const [translationTarget, setTranslationTarget] = useState("");
   const [lang, setLang] = useState(ENGLISH);
   const [isPaused, setIsPaused] = useState(true);
   const [isTranslating, setIsTranslating] = useState(false);
-  const [rand, setRand] = useState(Math.random());
 
   const recogStarted = useRef(false);
 
@@ -78,8 +78,12 @@ function App() {
 
     // when the event ends, start it again right away
     recognition.addEventListener("end", () => {
-      // trigger the useEffect
-      setRand(Math.random());
+      if (isPaused) {
+        recogStarted.current = false;
+        return;
+      } else if (!recogStarted.current) {
+        recognition.start();
+      }
     });
 
     return () => {
@@ -88,15 +92,6 @@ function App() {
       recognition.removeEventListener("end", recognition.start);
     };
   }, [recognition, isPaused, translationTarget]);
-
-  useEffect(() => {
-    if (isPaused) {
-      recogStarted.current = false;
-      return;
-    } else if (!recogStarted.current) {
-      recognition.start();
-    }
-  }, [rand, isPaused, recognition]);
 
   const handleClick = () => {
     if (!recogStarted.current) {
@@ -135,9 +130,9 @@ function App() {
           <Button
             variant="outlined"
             onClick={handlePlayPause}
-            endIcon={isPaused ? <PlayIcon /> : <PauseIcon />}
+            endIcon={isPaused ? <PlayIcon /> : <MicOffIcon />}
           >
-            {isPaused ? "Resume" : "Pause"} Recording
+            {isPaused ? "Resume" : "Pause"}
           </Button>
         ) : (
           <Button
@@ -145,7 +140,7 @@ function App() {
             onClick={handleClick}
             endIcon={<MicIcon />}
           >
-            Start Recording
+            Start
           </Button>
         )}
         <Button
@@ -163,10 +158,10 @@ function App() {
         <Button
           variant="outlined"
           onClick={toggleTranslation}
-          endIcon={<MicIcon />}
+          endIcon={<TranslateIcon />}
           disabled={!started || !translationTarget}
         >
-          {translationTarget ? "Stop" : "Start"} Translating
+          {isTranslating ? "Stop" : "Trans"}
         </Button>
 
         <FormControl>
@@ -183,7 +178,7 @@ function App() {
             onChange={handleChangeTranslationTarget}
             displayEmpty={true}
           >
-            <MenuItem value={null} disabled={true}>
+            <MenuItem value={""} disabled={true}>
               -- select --
             </MenuItem>
             <MenuItem value={ENGLISH}>English</MenuItem>

@@ -6,7 +6,8 @@ export const AppStyles = styled.div`
   background: hsl(42, 96%, 59%);
   .controls,
   .content {
-    min-width: 360px;
+    min-width: 320px;
+    width: calc(100vw - 2em);
     max-width: 900px;
     background: white;
     border-radius: 8px;
@@ -16,10 +17,10 @@ export const AppStyles = styled.div`
   }
   .controls {
     padding: 1em;
-    grid-auto-flow: column;
+    grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
     align-items: center;
     justify-content: center;
-    grid-gap: 2em;
+    grid-gap: 1em 2em;
     margin-top: 2em;
   }
   .svgBackground {
