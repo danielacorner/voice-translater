@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button, Select, MenuItem } from "@material-ui/core";
+import {
+  Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
 import ResetIcon from "@material-ui/icons/Replay";
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import { AppStyles } from "./AppStyles";
+import { getTranslation } from "./utils/translate";
 
 const ENGLISH = "en-US";
 const KOREAN = "ko-KR";
@@ -17,9 +24,10 @@ function App() {
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
-  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationTarget, setTranslationTarget] = useState(null);
   const [lang, setLang] = useState(ENGLISH);
   const [isPaused, setIsPaused] = useState(true);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [rand, setRand] = useState(Math.random());
 
   const recogStarted = useRef(false);
@@ -45,8 +53,21 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        setSpeechArr((prev) => [...prev, transcriptCapitalized]);
-        setInterimResult("");
+        if (translationTarget) {
+          const apiKey = "TODO"; // https://github.com/google/google-api-javascript-client
+          getTranslation(
+            { key: transcript, value: transcript },
+            translationTarget,
+            apiKey
+          ).then((result) => {
+            // TODO: prefer to setSpeechArr first, then find and replace when the result comes back?
+            setSpeechArr((prev) => [...prev, result.value]);
+            setInterimResult("");
+          });
+        } else {
+          setSpeechArr((prev) => [...prev, transcriptCapitalized]);
+          setInterimResult("");
+        }
       } else {
         // show the interim results
         setInterimResult(transcriptCapitalized);
@@ -66,7 +87,7 @@ function App() {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", recognition.start);
     };
-  }, [recognition, isPaused]);
+  }, [recognition, isPaused, translationTarget]);
 
   useEffect(() => {
     if (isPaused) {
@@ -90,10 +111,13 @@ function App() {
     setStarted(false);
     setSpeechArr([]);
   };
-  const handleClickTranslate = () => {
-    setIsTranslating(true);
+  const toggleTranslation = () => {
+    setIsTranslating((p) => !p);
     // https://translation.googleapis.com/language/translate/v2
     // https://cloud.google.com/translate/docs/basic/setup-basic
+  };
+  const handleChangeTranslationTarget = (e) => {
+    setTranslationTarget(e.target.value);
   };
   const handleChangeLanguages = (e) => {
     const newLang = e.target.value;
@@ -103,9 +127,7 @@ function App() {
   const handlePlayPause = () => {
     setIsPaused(!isPaused);
   };
-  const toggleTranslation = () => {
-    setIsTranslating((p) => !p);
-  };
+
   return (
     <AppStyles className="App">
       <div className="controls">
@@ -142,10 +164,32 @@ function App() {
           variant="outlined"
           onClick={toggleTranslation}
           endIcon={<MicIcon />}
-          disabled={!started}
+          disabled={!started || !translationTarget}
         >
-          {isTranslating ? "Stop" : "Start"} Translating
+          {translationTarget ? "Stop" : "Start"} Translating
         </Button>
+
+        <FormControl>
+          <InputLabel
+            shrink
+            id="translation-target"
+            style={{ whiteSpace: "nowrap" }}
+          >
+            Translate to...
+          </InputLabel>
+          <Select
+            value={translationTarget}
+            labelId="translation-target"
+            onChange={handleChangeTranslationTarget}
+            displayEmpty={true}
+          >
+            <MenuItem value={null} disabled={true}>
+              -- select --
+            </MenuItem>
+            <MenuItem value={ENGLISH}>English</MenuItem>
+            <MenuItem value={KOREAN}>한국어</MenuItem>
+          </Select>
+        </FormControl>
       </div>
       <div className="content">
         <div className="svgBackground">
