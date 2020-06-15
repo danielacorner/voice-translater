@@ -35,7 +35,7 @@ function App() {
   const [recognition] = useState(new SpeechToText());
 
   recognition.interimResults = true;
-
+  console.log("🌟🚨: App -> process.env", process.env);
   useEffect(() => {
     const handleResult = (e) => {
       // get the transcript
@@ -54,7 +54,7 @@ function App() {
       } else if (isFinal) {
         // commit it to the speech array
         if (translationTarget) {
-          const apiKey = "TODO"; // https://github.com/google/google-api-javascript-client
+          const apiKey = process.env.REACT_APP_PRIVATE_KEY; // https://github.com/google/google-api-javascript-client
           getTranslation(
             { key: transcript, value: transcript },
             translationTarget,

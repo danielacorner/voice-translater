@@ -16,7 +16,7 @@ export const getTranslation = (term, target, key) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          Authorization: `Bearer ${key}`,
+          Authorization: `Bearer ${decodeURI(key)}`,
         },
         redirect: "follow",
         referrer: "no-referrer",
