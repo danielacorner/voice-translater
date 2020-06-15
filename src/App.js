@@ -1,59 +1,13 @@
-import React, { useState } from "react";
-import { useMount } from "./utils/hooks";
-import styled from "styled-components/macro";
-import { Button } from "@material-ui/core";
+import React, { useState, useRef, useEffect } from "react";
+import { Button, Select, MenuItem } from "@material-ui/core";
+import MicIcon from "@material-ui/icons/Mic";
+import ResetIcon from "@material-ui/icons/Replay";
+import PauseIcon from "@material-ui/icons/Pause";
+import PlayIcon from "@material-ui/icons/PlayArrow";
+import { AppStyles } from "./AppStyles";
 
-const AppStyles = styled.div`
-  min-height: 100vh;
-  overflow: hidden;
-  background: hsl(42, 96%, 59%);
-
-  .content {
-    padding: 1em 1em 1em 2em;
-    border-radius: 8px;
-    margin: auto;
-    margin-top: 2em;
-    min-width: 360px;
-    max-width: 900px;
-    background: white;
-    display: grid;
-    justify-content: left;
-    min-height: 80px;
-    align-items: center;
-    grid-gap: 1em;
-    box-shadow: 10px 11px 3px #0000002b;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    position: relative;
-    .btnStartWrapper {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: grid;
-      place-items: center;
-    }
-    .svgBackground {
-      position: absolute;
-      top: 0.5em;
-      left: 0;
-      bottom: 0;
-      right: 0;
-    }
-    .leftMargin {
-      position: absolute;
-      left: 4em;
-      height: 100%;
-      width: 2px;
-      height: 100%;
-      background: hsla(0, 0%, 0%, 0.1);
-      &.line2 {
-        left: 4.5em;
-      }
-    }
-  }
-`;
+const ENGLISH = "en-US";
+const KOREAN = "ko-KR";
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -63,53 +17,136 @@ function App() {
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [lang, setLang] = useState(ENGLISH);
+  const [isPaused, setIsPaused] = useState(true);
+  const [rand, setRand] = useState(Math.random());
+
+  const recogStarted = useRef(false);
 
   const [recognition] = useState(new SpeechToText());
 
   recognition.interimResults = true;
 
-  useMount(() => {
+  useEffect(() => {
     const handleResult = (e) => {
-      console.log("🌟🚨: results", e.results);
-      const isFinal = Array.from(e.results).some((result) => result.isFinal);
-
+      // get the transcript
       const transcript = Array.from(e.results)
         .map((result) => result[0])
         .map((result) => result.transcript)
-        .join("");
+        .join(""); // sometimes we get multiple items
 
-      console.log("🌟🚨:", transcript);
-      console.log("🌟🚨: handleResult -> isFinal", isFinal);
+      // capitalize the first letter
+      const transcriptCapitalized =
+        transcript[0].toUpperCase() + transcript.slice(1);
 
-      if (isFinal) {
+      const isFinal = Array.from(e.results).some((result) => result.isFinal);
+      if (isPaused) {
+        return;
+      } else if (isFinal) {
         // commit it to the speech array
-        setSpeechArr((prev) => {
-          console.log("🌟🚨: handleResult -> prev", prev);
-
-          return [...prev, transcript];
-        });
+        setSpeechArr((prev) => [...prev, transcriptCapitalized]);
         setInterimResult("");
       } else {
-        // interim results
-        setInterimResult(transcript);
+        // show the interim results
+        setInterimResult(transcriptCapitalized);
       }
     };
 
     recognition.addEventListener("result", handleResult);
-    recognition.addEventListener("end", recognition.start);
 
-    console.log("🌟🚨: App -> recognition", recognition);
+    // when the event ends, start it again right away
+    recognition.addEventListener("end", () => {
+      // trigger the useEffect
+      setRand(Math.random());
+    });
 
-    return () => recognition.removeEventListener("result", handleResult);
-  });
+    return () => {
+      // cleanup
+      recognition.removeEventListener("result", handleResult);
+      recognition.removeEventListener("end", recognition.start);
+    };
+  }, [recognition, isPaused]);
+
+  useEffect(() => {
+    if (isPaused) {
+      recogStarted.current = false;
+      return;
+    } else if (!recogStarted.current) {
+      recognition.start();
+    }
+  }, [rand, isPaused, recognition]);
 
   const handleClick = () => {
-    console.log("starting");
-    recognition.start();
+    if (!recogStarted.current) {
+      // only start the first time
+      recognition.start();
+    }
+    recogStarted.current = true;
     setStarted(true);
+    setIsPaused(false);
+  };
+  const handleReset = () => {
+    setStarted(false);
+    setSpeechArr([]);
+  };
+  const handleClickTranslate = () => {
+    setIsTranslating(true);
+    // https://translation.googleapis.com/language/translate/v2
+    // https://cloud.google.com/translate/docs/basic/setup-basic
+  };
+  const handleChangeLanguages = (e) => {
+    const newLang = e.target.value;
+    recognition.lang = newLang;
+    setLang(newLang);
+  };
+  const handlePlayPause = () => {
+    setIsPaused(!isPaused);
+  };
+  const toggleTranslation = () => {
+    setIsTranslating((p) => !p);
   };
   return (
     <AppStyles className="App">
+      <div className="controls">
+        {started ? (
+          <Button
+            variant="outlined"
+            onClick={handlePlayPause}
+            endIcon={isPaused ? <PlayIcon /> : <PauseIcon />}
+          >
+            {isPaused ? "Resume" : "Pause"} Recording
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            onClick={handleClick}
+            endIcon={<MicIcon />}
+          >
+            Start Recording
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          onClick={handleReset}
+          endIcon={<ResetIcon />}
+          disabled={!started}
+        >
+          Reset
+        </Button>
+        <Select value={lang} onChange={handleChangeLanguages}>
+          <MenuItem value={ENGLISH}>English</MenuItem>
+          <MenuItem value={KOREAN}>한국어</MenuItem>
+        </Select>
+        <Button
+          variant="outlined"
+          onClick={toggleTranslation}
+          endIcon={<MicIcon />}
+          disabled={!started}
+        >
+          {isTranslating ? "Stop" : "Start"} Translating
+        </Button>
+      </div>
       <div className="content">
         <div className="svgBackground">
           <svg width="100%" height="100%">
@@ -141,13 +178,6 @@ function App() {
           <p key={`${speech}-${idx}`}>{speech}</p>
         ))}
         <p>{interimResult}</p>
-        {!started && (
-          <div className="btnStartWrapper">
-            <Button variant="outlined" onClick={handleClick}>
-              start recording
-            </Button>
-          </div>
-        )}
         <div className="leftMargin line1"></div>
         <div className="leftMargin line2"></div>
       </div>
