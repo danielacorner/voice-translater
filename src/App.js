@@ -77,14 +77,7 @@ function App() {
     recognition.addEventListener("result", handleResult);
 
     // when the event ends, start it again right away
-    recognition.addEventListener("end", () => {
-      if (isPaused) {
-        recogStarted.current = false;
-        return;
-      } else if (!recogStarted.current) {
-        recognition.start();
-      }
-    });
+    recognition.addEventListener("end", recognition.start);
 
     return () => {
       // cleanup
