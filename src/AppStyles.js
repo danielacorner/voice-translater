@@ -55,4 +55,15 @@ export const AppStyles = styled.div`
       }
     }
   }
+  .translatedTextWrapper {
+    position: relative;
+    .originalText {
+      white-space: nowrap;
+      position: absolute;
+      top: -1.1em;
+      color: hsla(0, 0%, 30%, 1);
+      font-size: 0.8em;
+      letter-spacing: 0.1em;
+    }
+  }
 `;

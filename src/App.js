@@ -12,20 +12,23 @@ import ResetIcon from "@material-ui/icons/Replay";
 import TranslateIcon from "@material-ui/icons/Translate";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import { AppStyles } from "./AppStyles";
-import { getTranslation } from "./utils/translate";
+import googleTranslate from "translate";
 
-const ENGLISH = "en-US";
-const KOREAN = "ko-KR";
+// https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+const ENGLISH = "en";
+const KOREAN = "ko";
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function App() {
+  const apiKey = process.env.REACT_APP_PRIVATE_KEY; // https://github.com/google/google-api-javascript-client
+
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
-  const [translationTarget, setTranslationTarget] = useState("");
+  const [targetLang, setTargetLang] = useState(KOREAN);
   const [lang, setLang] = useState(ENGLISH);
   const [isPaused, setIsPaused] = useState(true);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -35,7 +38,6 @@ function App() {
   const [recognition] = useState(new SpeechToText());
 
   recognition.interimResults = true;
-  console.log("🌟🚨: App -> process.env", process.env);
   useEffect(() => {
     const handleResult = (e) => {
       // get the transcript
@@ -53,19 +55,23 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        if (translationTarget) {
-          const apiKey = process.env.REACT_APP_PRIVATE_KEY; // https://github.com/google/google-api-javascript-client
-          getTranslation(
-            { key: transcript, value: transcript },
-            translationTarget,
-            apiKey
-          ).then((result) => {
-            // TODO: prefer to setSpeechArr first, then find and replace when the result comes back?
-            setSpeechArr((prev) => [...prev, result.value]);
+        if (targetLang && targetLang !== lang) {
+          // if translating,
+          googleTranslate(transcript, {
+            from: lang,
+            to: targetLang,
+            key: apiKey,
+          }).then((result) => {
+            setSpeechArr((prev) => [
+              ...prev,
+              { translation: result, originalText: transcriptCapitalized },
+            ]);
+            // remove the interim result
             setInterimResult("");
           });
         } else {
           setSpeechArr((prev) => [...prev, transcriptCapitalized]);
+          // remove the interim result
           setInterimResult("");
         }
       } else {
@@ -84,7 +90,7 @@ function App() {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", recognition.start);
     };
-  }, [recognition, isPaused, translationTarget]);
+  }, [recognition, isPaused, targetLang, lang, apiKey]);
 
   const handleClick = () => {
     if (!recogStarted.current) {
@@ -104,8 +110,8 @@ function App() {
     // https://translation.googleapis.com/language/translate/v2
     // https://cloud.google.com/translate/docs/basic/setup-basic
   };
-  const handleChangeTranslationTarget = (e) => {
-    setTranslationTarget(e.target.value);
+  const handleChangetargetLang = (e) => {
+    setTargetLang(e.target.value);
   };
   const handleChangeLanguages = (e) => {
     const newLang = e.target.value;
@@ -152,7 +158,7 @@ function App() {
           variant="outlined"
           onClick={toggleTranslation}
           endIcon={<TranslateIcon />}
-          disabled={!started || !translationTarget}
+          disabled={!started || !targetLang}
         >
           {isTranslating ? "Stop" : "Trans"}
         </Button>
@@ -166,16 +172,12 @@ function App() {
             Translate to...
           </InputLabel>
           <Select
-            value={translationTarget}
+            value={targetLang}
             labelId="translation-target"
-            onChange={handleChangeTranslationTarget}
-            displayEmpty={true}
+            onChange={handleChangetargetLang}
           >
-            <MenuItem value={""} disabled={true}>
-              -- select --
-            </MenuItem>
-            <MenuItem value={ENGLISH}>English</MenuItem>
             <MenuItem value={KOREAN}>한국어</MenuItem>
+            <MenuItem value={ENGLISH}>English</MenuItem>
           </Select>
         </FormControl>
       </div>
@@ -206,9 +208,19 @@ function App() {
           </svg>
         </div>
 
-        {speechArr.map((speech, idx) => (
-          <p key={`${speech}-${idx}`}>{speech}</p>
-        ))}
+        {speechArr.map((speech, idx) =>
+          typeof speech === "object" ? (
+            <div
+              className="translatedTextWrapper"
+              key={`${speech.translation}-${idx}`}
+            >
+              <p className="translation">{speech.translation}</p>
+              <p className="originalText">{speech.originalText}</p>
+            </div>
+          ) : (
+            <p key={`${speech}-${idx}`}>{speech}</p>
+          )
+        )}
         <p>{interimResult}</p>
         <div className="leftMargin line1"></div>
         <div className="leftMargin line2"></div>
