@@ -6,14 +6,16 @@ import {
   InputLabel,
   FormControl,
   TextField,
+  IconButton,
 } from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
 import ResetIcon from "@material-ui/icons/Replay";
 import TranslateIcon from "@material-ui/icons/Translate";
+import DoneIcon from "@material-ui/icons/Done";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import { AppStyles } from "./AppStyles";
-import googleTranslate from "translate";
+import getGoogleTranslate from "google-translate";
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 const ENGLISH = "en";
@@ -24,7 +26,11 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function App() {
-  const [apiKey, setApiKey] = useState(/* process.env.REACT_APP_PRIVATE_KEY */); // https://github.com/google/google-api-javascript-client
+  // TODO: save to local storage
+  const [apiKey, setApiKey] = useState(
+    window.localStorage.getItem("api_key") || null
+  ); // https://github.com/google/google-api-javascript-client
+  const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
@@ -56,24 +62,28 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        if (targetLang && targetLang !== lang) {
+        if (targetLang && targetLang !== lang && googleTranslate) {
           // if translating,
-          googleTranslate(transcript, {
-            from: lang,
-            to: targetLang,
-            key: apiKey,
-          })
-            .then((result) => {
-              setSpeechArr((prev) => [
-                ...prev,
-                { translation: result, originalText: transcriptCapitalized },
-              ]);
-              // remove the interim result
-              setInterimResult("");
-            })
-            .catch((err) => {
-              setApiErr(err);
-            });
+          googleTranslate.translate(
+            transcript,
+            lang,
+            targetLang,
+            (err, result) => {
+              if (err) {
+                setApiErr(err);
+              } else {
+                setSpeechArr((prev) => [
+                  ...prev,
+                  {
+                    translation: result.translatedText,
+                    originalText: result.originalText,
+                  },
+                ]);
+                // remove the interim result
+                setInterimResult("");
+              }
+            }
+          );
         } else {
           setSpeechArr((prev) => [...prev, transcriptCapitalized]);
           // remove the interim result
@@ -95,7 +105,7 @@ function App() {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", recognition.start);
     };
-  }, [recognition, isPaused, targetLang, lang, apiKey]);
+  }, [recognition, isPaused, targetLang, lang, apiKey, googleTranslate]);
 
   const handleClick = () => {
     if (!recogStarted.current) {
@@ -126,10 +136,16 @@ function App() {
   const handlePlayPause = () => {
     setIsPaused(!isPaused);
   };
-  const handleSubmitApiKey = (e) => {
-    setApiKey(e.target.value);
+  const [newApiKey, setNewApiKey] = useState(null);
+  const handleChangeApiKey = (e) => {
+    setNewApiKey(e.target.value);
   };
-  const isTranslateDisabled = !apiKey || apiErr;
+  const handleSubmitApiKey = (e) => {
+    window.localStorage.setItem("api_key", newApiKey);
+    setApiKey(newApiKey);
+    setApiErr(null);
+  };
+  const isTranslateDisabled = Boolean(!apiKey || apiErr);
   return (
     <AppStyles className="App">
       {isTranslateDisabled && (
@@ -137,10 +153,14 @@ function App() {
           <TextField
             type="text"
             variant="outlined"
-            onSubmit={handleSubmitApiKey}
+            onChange={handleChangeApiKey}
             label={"Google Translate API key"}
-            error={apiErr}
+            error={Boolean(apiErr)}
+            helperText={apiErr ? JSON.parse(apiErr.body).error.message : null}
           />
+          <IconButton disabled={!newApiKey} onClick={handleSubmitApiKey}>
+            <DoneIcon />
+          </IconButton>
         </div>
       )}
       <div className="controls shadow wide themed">

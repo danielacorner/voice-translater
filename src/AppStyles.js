@@ -36,6 +36,8 @@ export const AppStyles = styled.div`
     padding: 1em;
     width: fit-content;
     display: grid;
+    grid-auto-flow: column;
+    grid-gap: 0.5em;
     margin: 2em auto 0;
   }
   .content {
