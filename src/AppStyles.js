@@ -4,16 +4,22 @@ export const AppStyles = styled.div`
   min-height: 100vh;
   overflow: hidden;
   background: hsl(42, 96%, 59%);
-  .controls,
-  .content {
+  .shadow {
+    box-shadow: 10px 11px 3px #0000002b;
+  }
+  .wide {
     min-width: 320px;
     width: calc(100vw - 2em);
     max-width: 900px;
+  }
+  .themed {
     background: white;
     border-radius: 8px;
     margin: auto;
+  }
+  .controls,
+  .content {
     display: grid;
-    box-shadow: 10px 11px 3px #0000002b;
   }
   .controls {
     padding: 1em;
@@ -25,6 +31,12 @@ export const AppStyles = styled.div`
   }
   .svgBackground {
     pointer-events: none;
+  }
+  .apiKeyPrompt {
+    padding: 1em;
+    width: fit-content;
+    display: grid;
+    margin: 2em auto 0;
   }
   .content {
     padding: 1em 1em 1em 5em;

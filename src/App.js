@@ -129,19 +129,21 @@ function App() {
   const handleSubmitApiKey = (e) => {
     setApiKey(e.target.value);
   };
+  const isTranslateDisabled = !apiKey || apiErr;
   return (
     <AppStyles className="App">
-      {(!apiKey || apiErr) && (
-        <div className="apiKeyPrompt">
+      {isTranslateDisabled && (
+        <div className="apiKeyPrompt shadow wide themed">
           <TextField
             type="text"
+            variant="outlined"
             onSubmit={handleSubmitApiKey}
             label={"Google Translate API key"}
             error={apiErr}
           />
         </div>
       )}
-      <div className="controls">
+      <div className="controls shadow wide themed">
         {started ? (
           <Button
             variant="outlined"
@@ -175,7 +177,7 @@ function App() {
           variant="outlined"
           onClick={toggleTranslation}
           endIcon={<TranslateIcon />}
-          disabled={!started || !targetLang}
+          disabled={!started || !targetLang || isTranslateDisabled}
         >
           {isTranslating ? "Stop" : "Trans"}
         </Button>
@@ -191,6 +193,7 @@ function App() {
           <Select
             value={targetLang}
             labelId="translation-target"
+            disabled={isTranslateDisabled}
             onChange={handleChangetargetLang}
           >
             <MenuItem value={KOREAN}>한국어</MenuItem>
@@ -198,7 +201,7 @@ function App() {
           </Select>
         </FormControl>
       </div>
-      <div className="content">
+      <div className="content shadow wide themed">
         <div className="svgBackground">
           <svg width="100%" height="100%">
             <defs>
