@@ -5,6 +5,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  TextField,
 } from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
@@ -23,8 +24,8 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function App() {
-  const apiKey = process.env.REACT_APP_PRIVATE_KEY; // https://github.com/google/google-api-javascript-client
-
+  const [apiKey, setApiKey] = useState(/* process.env.REACT_APP_PRIVATE_KEY */); // https://github.com/google/google-api-javascript-client
+  const [apiErr, setApiErr] = useState(null);
   const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
@@ -61,14 +62,18 @@ function App() {
             from: lang,
             to: targetLang,
             key: apiKey,
-          }).then((result) => {
-            setSpeechArr((prev) => [
-              ...prev,
-              { translation: result, originalText: transcriptCapitalized },
-            ]);
-            // remove the interim result
-            setInterimResult("");
-          });
+          })
+            .then((result) => {
+              setSpeechArr((prev) => [
+                ...prev,
+                { translation: result, originalText: transcriptCapitalized },
+              ]);
+              // remove the interim result
+              setInterimResult("");
+            })
+            .catch((err) => {
+              setApiErr(err);
+            });
         } else {
           setSpeechArr((prev) => [...prev, transcriptCapitalized]);
           // remove the interim result
@@ -121,9 +126,21 @@ function App() {
   const handlePlayPause = () => {
     setIsPaused(!isPaused);
   };
-
+  const handleSubmitApiKey = (e) => {
+    setApiKey(e.target.value);
+  };
   return (
     <AppStyles className="App">
+      {(!apiKey || apiErr) && (
+        <div className="apiKeyPrompt">
+          <TextField
+            type="text"
+            onSubmit={handleSubmitApiKey}
+            label={"Google Translate API key"}
+            error={apiErr}
+          />
+        </div>
+      )}
       <div className="controls">
         {started ? (
           <Button
