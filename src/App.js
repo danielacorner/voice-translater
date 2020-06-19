@@ -145,6 +145,10 @@ function App() {
     setApiKey(newApiKey);
     setApiErr(null);
   };
+  const handleRemoveApiKey = () => {
+    window.localStorage.removeItem("api_key");
+    setApiKey(null);
+  };
   const isTranslateDisabled = Boolean(!apiKey || apiErr);
   return (
     <AppStyles className="App">
@@ -265,6 +269,13 @@ function App() {
         <div className="leftMargin line1"></div>
         <div className="leftMargin line2"></div>
       </div>
+      {!isTranslateDisabled && (
+        <div className="swapApiKey">
+          <Button variant="outlined" onClick={handleRemoveApiKey}>
+            Swap API key
+          </Button>
+        </div>
+      )}
     </AppStyles>
   );
 }

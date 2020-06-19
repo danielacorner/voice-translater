@@ -40,6 +40,12 @@ export const AppStyles = styled.div`
     grid-gap: 0.5em;
     margin: 2em auto 0;
   }
+  .swapApiKey {
+    padding: 1em;
+    margin: 2em auto 0;
+    width: fit-content;
+    max-width: 900px;
+  }
   .content {
     padding: 1em 1em 1em 5em;
     margin-top: 2em;
