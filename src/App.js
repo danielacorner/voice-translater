@@ -15,17 +15,42 @@ import PlayIcon from "@material-ui/icons/PlayArrow";
 import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { AppStyles } from "./AppStyles";
 // import getGoogleTranslate from "google-translate";
-import { LANGUAGES } from "./utils/constants";
+import { LANGUAGES, MAX_LISTITEM_LENGTH } from "./utils/constants";
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-const ENGLISH = "en";
-const KOREAN = "ko";
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
+
+const ChangeLanguage = (props) => (
+  <Select value={props.lang} onChange={props.handleChangeLanguages}>
+    {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
+      <MenuItem key={CODE} value={CODE}>
+        {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
+        {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
+      </MenuItem>
+    ))}
+  </Select>
+);
+
+const ChangeTargetLanguage = (props) => (
+  <Select
+    value={props.targetLang}
+    labelId="translation-target"
+    disabled={props.isTranslateDisabled}
+    onChange={props.handleChangetargetLang}
+  >
+    {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
+      <MenuItem key={CODE} value={CODE}>
+        {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
+        {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
+      </MenuItem>
+    ))}
+  </Select>
+);
 
 function App() {
   // const [apiKey, setApiKey] = useState(
@@ -58,8 +83,8 @@ function App() {
   ]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
-  const [targetLang, setTargetLang] = useState(KOREAN);
-  const [lang, setLang] = useState(ENGLISH);
+  const [targetLang, setTargetLang] = useState(LANGUAGES.KOREAN.CODE);
+  const [lang, setLang] = useState(LANGUAGES.ENGLISH.CODE);
   const [isPaused, setIsPaused] = useState(true);
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -290,14 +315,10 @@ function App() {
           >
             I'm speaking...
           </InputLabel>
-          <Select value={lang} onChange={handleChangeLanguages}>
-            <MenuItem value={LANGUAGES.KOREAN.CODE}>
-              {LANGUAGES.KOREAN.DISPLAY}
-            </MenuItem>
-            <MenuItem value={LANGUAGES.ENGLISH.CODE}>
-              {LANGUAGES.ENGLISH.DISPLAY}
-            </MenuItem>
-          </Select>
+          <ChangeLanguage
+            lang={lang}
+            handleChangeLanguages={handleChangeLanguages}
+          ></ChangeLanguage>
         </FormControl>
 
         <div className="swapBtnWrapper">
@@ -314,19 +335,11 @@ function App() {
           >
             Translate to...
           </InputLabel>
-          <Select
-            value={targetLang}
-            labelId="translation-target"
-            disabled={isTranslateDisabled}
-            onChange={handleChangetargetLang}
-          >
-            <MenuItem value={LANGUAGES.KOREAN.CODE}>
-              {LANGUAGES.KOREAN.DISPLAY}
-            </MenuItem>
-            <MenuItem value={LANGUAGES.ENGLISH.CODE}>
-              {LANGUAGES.ENGLISH.DISPLAY}
-            </MenuItem>
-          </Select>
+          <ChangeTargetLanguage
+            targetLang={targetLang}
+            handleChangetargetLang={handleChangetargetLang}
+            isTranslateDisabled={isTranslateDisabled}
+          ></ChangeTargetLanguage>
         </FormControl>
         <Button
           variant="outlined"
