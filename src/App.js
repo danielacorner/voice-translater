@@ -27,13 +27,34 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function App() {
-  // TODO: save to local storage
   const [apiKey, setApiKey] = useState(
     window.localStorage.getItem("api_key") || null
   ); // https://github.com/google/google-api-javascript-client
   const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
-  const [speechArr, setSpeechArr] = useState([]);
+  const [speechArr, setSpeechArr] = useState([
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // TODO: fix overlap
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hey heyheyheyheyheyheyheyheyheyheyhey",
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // { translation: "heyhiho", originalText: "hieou" },
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+  ]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
   const [targetLang, setTargetLang] = useState(KOREAN);
@@ -330,7 +351,7 @@ function SvgBackground() {
             patternUnits="userSpaceOnUse"
           >
             <line
-              stroke="hsla(0,0%,0%,0.1)"
+              stroke="rgba(5, 8, 247, 0.16)"
               x1="0"
               x2="100"
               y1="0"

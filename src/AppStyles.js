@@ -89,6 +89,7 @@ export const AppStyles = styled.div`
       p {
         height: 24px;
       }
+
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       position: relative;
@@ -105,7 +106,7 @@ export const AppStyles = styled.div`
         height: 100%;
         width: 2px;
         height: calc(100% + ${(props) => props.overflowPx}px);
-        background: hsla(0, 0%, 0%, 0.1);
+        background: hsla(0, 100%, 50%, 0.1);
         &.line2 {
           left: 4.5em;
         }
@@ -113,10 +114,16 @@ export const AppStyles = styled.div`
     }
     .translatedTextWrapper {
       position: relative;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      .translation {
+        margin-bottom: -8px;
+      }
       .originalText {
         white-space: nowrap;
         position: absolute;
-        top: -0.8em;
+        top: 4px;
         color: hsla(0, 0%, 30%, 1);
         font-size: 0.8em;
         letter-spacing: 0.1em;
