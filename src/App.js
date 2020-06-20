@@ -63,7 +63,9 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        if (targetLang && targetLang !== lang && googleTranslate) {
+        const shouldTranslate =
+          isTranslating && targetLang && targetLang !== lang && googleTranslate;
+        if (shouldTranslate) {
           // if translating,
           googleTranslate.translate(
             transcript,
@@ -106,7 +108,15 @@ function App() {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", recognition.start);
     };
-  }, [recognition, isPaused, targetLang, lang, apiKey, googleTranslate]);
+  }, [
+    recognition,
+    isPaused,
+    targetLang,
+    lang,
+    apiKey,
+    googleTranslate,
+    isTranslating,
+  ]);
 
   const handleClick = () => {
     if (!recogStarted.current) {
@@ -264,8 +274,8 @@ function App() {
           {isTranslating ? "Stop" : "Trans"}
         </Button>
       </div>
-      <div className="contentWrapper">
-        <div className="content shadow wide themed" ref={paperRef}>
+      <div className="contentWrapper wide themed shadow">
+        <div className="content" ref={paperRef}>
           <SvgBackground />
 
           {speechArr.map((speech, idx) =>
