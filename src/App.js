@@ -14,6 +14,7 @@ import ResetIcon from "@material-ui/icons/Replay";
 import TranslateIcon from "@material-ui/icons/Translate";
 import DoneIcon from "@material-ui/icons/Done";
 import PlayIcon from "@material-ui/icons/PlayArrow";
+import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { AppStyles } from "./AppStyles";
 import getGoogleTranslate from "google-translate";
 
@@ -141,6 +142,7 @@ function App() {
     setNewApiKey(e.target.value);
   };
   const handleSubmitApiKey = (e) => {
+    e.preventDefault();
     window.localStorage.setItem("api_key", newApiKey);
     setApiKey(newApiKey);
     setApiErr(null);
@@ -149,11 +151,34 @@ function App() {
     window.localStorage.removeItem("api_key");
     setApiKey(null);
   };
+  const handleSwapLanguages = () => {
+    setLang(targetLang);
+    setTargetLang(lang);
+  };
+
+  // whenever the speechArr changes, scroll to the bottom
+  // (unless the user has scrolled up)
+  const paperRef = useRef();
+  useEffect(() => {
+    const { scrollTop, scrollHeight, offsetHeight } = paperRef.current;
+    // when scrolled all the way to the bottom,
+    // scrollHeight = scrollTop + offsetHeight
+    const userHasScrolledUp = scrollHeight !== scrollTop + offsetHeight;
+    console.dir(paperRef.current);
+    if (!userHasScrolledUp) {
+      // auto-scroll to the bottom
+      paperRef.current.scrollTop = scrollHeight;
+    }
+  }, [speechArr, interimResult]);
+
   const isTranslateDisabled = Boolean(!apiKey || apiErr);
   return (
     <AppStyles className="App">
       {isTranslateDisabled && (
-        <div className="apiKeyPrompt shadow wide themed">
+        <form
+          className="apiKeyPrompt shadow wide themed"
+          onSubmit={handleSubmitApiKey}
+        >
           <TextField
             type="text"
             variant="outlined"
@@ -162,10 +187,10 @@ function App() {
             error={Boolean(apiErr)}
             helperText={apiErr ? JSON.parse(apiErr.body).error.message : null}
           />
-          <IconButton disabled={!newApiKey} onClick={handleSubmitApiKey}>
+          <IconButton disabled={!newApiKey}>
             <DoneIcon />
           </IconButton>
-        </div>
+        </form>
       )}
       <div className="controls shadow wide themed">
         {started ? (
@@ -185,26 +210,25 @@ function App() {
             Start
           </Button>
         )}
-        <Button
-          variant="outlined"
-          onClick={handleReset}
-          endIcon={<ResetIcon />}
-          disabled={!started}
-        >
-          Reset
-        </Button>
-        <Select value={lang} onChange={handleChangeLanguages}>
-          <MenuItem value={ENGLISH}>English</MenuItem>
-          <MenuItem value={KOREAN}>한국어</MenuItem>
-        </Select>
-        <Button
-          variant="outlined"
-          onClick={toggleTranslation}
-          endIcon={<TranslateIcon />}
-          disabled={!started || !targetLang || isTranslateDisabled}
-        >
-          {isTranslating ? "Stop" : "Trans"}
-        </Button>
+        <FormControl>
+          <InputLabel
+            shrink
+            id="translation-target"
+            style={{ whiteSpace: "nowrap" }}
+          >
+            I'm speaking...
+          </InputLabel>
+          <Select value={lang} onChange={handleChangeLanguages}>
+            <MenuItem value={ENGLISH}>English</MenuItem>
+            <MenuItem value={KOREAN}>한국어</MenuItem>
+          </Select>
+        </FormControl>
+
+        <div className="swapBtnWrapper">
+          <IconButton onClick={handleSwapLanguages}>
+            <SwapIcon />
+          </IconButton>
+        </div>
 
         <FormControl>
           <InputLabel
@@ -224,51 +248,45 @@ function App() {
             <MenuItem value={ENGLISH}>English</MenuItem>
           </Select>
         </FormControl>
+        <Button
+          variant="outlined"
+          onClick={toggleTranslation}
+          endIcon={<TranslateIcon />}
+          disabled={!started || !targetLang || isTranslateDisabled}
+        >
+          {isTranslating ? "Stop" : "Trans"}
+        </Button>
       </div>
-      <div className="content shadow wide themed">
-        <div className="svgBackground">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern
-                id="lines"
-                x="0"
-                y="0"
-                width="1"
-                height="2em"
-                patternUnits="userSpaceOnUse"
+      <div className="contentWrapper">
+        <div className="content shadow wide themed" ref={paperRef}>
+          <SvgBackground />
+
+          {speechArr.map((speech, idx) =>
+            typeof speech === "object" ? (
+              <div
+                className="translatedTextWrapper"
+                key={`${speech.translation}-${idx}`}
               >
-                <line
-                  stroke="hsla(0,0%,0%,0.1)"
-                  x1="0"
-                  x2="100"
-                  y1="0"
-                  y2="0"
-                  strokeWidth="2"
-                />
-              </pattern>
-            </defs>
-
-            <rect x="0" y="0" width="100%" height="100%" fill="url(#lines)" />
-          </svg>
+                <p className="translation">{speech.translation}</p>
+                <p className="originalText">{speech.originalText}</p>
+              </div>
+            ) : (
+              <p key={`${speech}-${idx}`}>{speech}</p>
+            )
+          )}
+          <p>{interimResult}</p>
+          <div className="leftMargin line1"></div>
+          <div className="leftMargin line2"></div>
         </div>
-
-        {speechArr.map((speech, idx) =>
-          typeof speech === "object" ? (
-            <div
-              className="translatedTextWrapper"
-              key={`${speech.translation}-${idx}`}
-            >
-              <p className="translation">{speech.translation}</p>
-              <p className="originalText">{speech.originalText}</p>
-            </div>
-          ) : (
-            <p key={`${speech}-${idx}`}>{speech}</p>
-          )
-        )}
-        <p>{interimResult}</p>
-        <div className="leftMargin line1"></div>
-        <div className="leftMargin line2"></div>
+        <IconButton
+          className="btnReset"
+          onClick={handleReset}
+          disabled={!started}
+        >
+          <ResetIcon />
+        </IconButton>
       </div>
+
       {!isTranslateDisabled && (
         <div className="swapApiKey">
           <Button variant="outlined" onClick={handleRemoveApiKey}>
@@ -277,6 +295,36 @@ function App() {
         </div>
       )}
     </AppStyles>
+  );
+}
+
+function SvgBackground() {
+  return (
+    <div className="svgBackground">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern
+            id="lines"
+            x="0"
+            y="0"
+            width="1"
+            height="2em"
+            patternUnits="userSpaceOnUse"
+          >
+            <line
+              stroke="hsla(0,0%,0%,0.1)"
+              x1="0"
+              x2="100"
+              y1="0"
+              y2="0"
+              strokeWidth="2"
+            />
+          </pattern>
+        </defs>
+
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#lines)" />
+      </svg>
+    </div>
   );
 }
 
