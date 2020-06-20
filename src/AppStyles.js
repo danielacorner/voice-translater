@@ -72,10 +72,7 @@ export const AppStyles = styled.div`
     }
     .content {
       overflow: auto;
-      padding: 1em 1em 1em 5em;
-      p {
-        padding: 1em 1em 1em 0;
-      }
+      padding: 1.4em 1em 1em 5em;
       max-height: calc(
         100vh - ${3 * PAPER_MARGINTOP_EMS + 2 * CONTROLS_HEIGHT_EMS}em
       );
@@ -88,7 +85,10 @@ export const AppStyles = styled.div`
       min-height: 80px;
       align-items: start;
       justify-content: left;
-      grid-gap: 0.7em;
+      grid-gap: 0.5em;
+      p {
+        height: 24px;
+      }
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       position: relative;
@@ -96,7 +96,7 @@ export const AppStyles = styled.div`
         position: absolute;
         top: 0.5em;
         left: 0;
-        bottom: 0;
+        bottom: ${(props) => -props.overflowPx}px;
         right: 0;
       }
       .leftMargin {
@@ -104,7 +104,7 @@ export const AppStyles = styled.div`
         left: 4em;
         height: 100%;
         width: 2px;
-        height: 100%;
+        height: calc(100% + ${(props) => props.overflowPx}px);
         background: hsla(0, 0%, 0%, 0.1);
         &.line2 {
           left: 4.5em;
@@ -116,7 +116,7 @@ export const AppStyles = styled.div`
       .originalText {
         white-space: nowrap;
         position: absolute;
-        top: -1.1em;
+        top: -0.8em;
         color: hsla(0, 0%, 30%, 1);
         font-size: 0.8em;
         letter-spacing: 0.1em;

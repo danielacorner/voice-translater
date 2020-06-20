@@ -169,21 +169,28 @@ function App() {
   // whenever the speechArr changes, scroll to the bottom
   // (unless the user has scrolled up)
   const paperRef = useRef();
+  const interimRef = useRef();
+  const [overflowPx, setOverflowPx] = useState(0);
+
   useEffect(() => {
-    const { scrollTop, scrollHeight, offsetHeight } = paperRef.current;
+    const { scrollHeight, offsetHeight } = paperRef.current;
+    setOverflowPx(scrollHeight - offsetHeight);
     // when scrolled all the way to the bottom,
     // scrollHeight = scrollTop + offsetHeight
-    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
-    console.dir(paperRef.current);
-    if (!userHasScrolledUp) {
-      // auto-scroll to the bottom
-      paperRef.current.scrollTop = scrollHeight;
-    }
+    // const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
+    // if (!userHasScrolledUp) {
+    // auto-scroll to the bottom
+    interimRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "start",
+    });
+    // }
   }, [speechArr, interimResult]);
 
   const isTranslateDisabled = Boolean(!apiKey || apiErr);
   return (
-    <AppStyles className="App">
+    <AppStyles className="App" overflowPx={overflowPx}>
       {!isTranslateDisabled && (
         <div className="swapApiKey">
           <Button size="small" variant="outlined" onClick={handleRemoveApiKey}>
@@ -291,7 +298,9 @@ function App() {
               <p key={`${speech}-${idx}`}>{speech}</p>
             )
           )}
-          <p>{interimResult}</p>
+          <p className="interimResult" ref={interimRef}>
+            {interimResult}
+          </p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
         </div>
