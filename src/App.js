@@ -58,29 +58,7 @@ function App() {
   // ); // https://github.com/google/google-api-javascript-client
   // const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
-  const [speechArr, setSpeechArr] = useState([
-    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // TODO: fix overlap
-    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hey heyheyheyheyheyheyheyheyheyheyhey",
-    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // { translation: "heyhiho", originalText: "hieou" },
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-    // "hi",
-  ]);
+  const [speechArr, setSpeechArr] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
   const [targetLang, setTargetLang] = useState(LANGUAGES.KOREAN.CODE);
@@ -399,7 +377,7 @@ function SvgBackground() {
             patternUnits="userSpaceOnUse"
           >
             <line
-              stroke="rgba(5, 8, 247, 0.16)"
+              stroke="rgba(5, 8, 247, 0.12)"
               x1="0"
               x2="100"
               y1="0"

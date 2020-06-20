@@ -85,9 +85,9 @@ export const AppStyles = styled.div`
       min-height: 80px;
       align-items: start;
       justify-content: left;
-      grid-gap: 0.5em;
+      grid-gap: 11px;
       p {
-        height: 24px;
+        height: min-content;
       }
 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
