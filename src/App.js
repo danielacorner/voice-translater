@@ -163,7 +163,7 @@ function App() {
     const { scrollTop, scrollHeight, offsetHeight } = paperRef.current;
     // when scrolled all the way to the bottom,
     // scrollHeight = scrollTop + offsetHeight
-    const userHasScrolledUp = scrollHeight !== scrollTop + offsetHeight;
+    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
     console.dir(paperRef.current);
     if (!userHasScrolledUp) {
       // auto-scroll to the bottom
@@ -174,6 +174,13 @@ function App() {
   const isTranslateDisabled = Boolean(!apiKey || apiErr);
   return (
     <AppStyles className="App">
+      {!isTranslateDisabled && (
+        <div className="swapApiKey">
+          <Button size="small" variant="outlined" onClick={handleRemoveApiKey}>
+            Swap API key
+          </Button>
+        </div>
+      )}
       {isTranslateDisabled && (
         <form
           className="apiKeyPrompt shadow wide themed"
@@ -286,14 +293,6 @@ function App() {
           <ResetIcon />
         </IconButton>
       </div>
-
-      {!isTranslateDisabled && (
-        <div className="swapApiKey">
-          <Button variant="outlined" onClick={handleRemoveApiKey}>
-            Swap API key
-          </Button>
-        </div>
-      )}
     </AppStyles>
   );
 }

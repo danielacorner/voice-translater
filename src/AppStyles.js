@@ -53,8 +53,12 @@ export const AppStyles = styled.div`
     margin: ${PAPER_MARGINTOP_EMS}em auto 0;
   }
   .swapApiKey {
-    padding: 1em;
-    margin: 2em auto 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: scale(0.65);
+    transform-origin: top right;
+    padding: 6px 1.5em;
     width: fit-content;
     max-width: 900px;
   }
