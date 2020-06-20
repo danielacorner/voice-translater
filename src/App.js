@@ -25,8 +25,9 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
+
 function App() {
-  // TODO: save to local storage
   const [apiKey, setApiKey] = useState(
     window.localStorage.getItem("api_key") || null
   ); // https://github.com/google/google-api-javascript-client
@@ -62,28 +63,52 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        if (targetLang && targetLang !== lang && googleTranslate) {
+        if (targetLang && targetLang !== lang /*  && googleTranslate */) {
           // if translating,
-          googleTranslate.translate(
-            transcript,
-            lang,
-            targetLang,
-            (err, result) => {
-              if (err) {
-                setApiErr(err);
-              } else {
-                setSpeechArr((prev) => [
-                  ...prev,
-                  {
-                    translation: result.translatedText,
-                    originalText: result.originalText,
-                  },
-                ]);
-                // remove the interim result
-                setInterimResult("");
-              }
-            }
-          );
+          // THIS VERSION USES FREE GOOGLE APP SCRIPT
+          fetch(
+            `${SCRIPT_URL}?source=${lang}&target=${targetLang}&q=${transcript}`
+          )
+            .then((resp) => resp.text())
+            .then((resp) => {
+              // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
+              const jsonText = resp.slice("callback(".length, -1);
+              const { sourceText, translatedText } = JSON.parse(jsonText);
+              setSpeechArr((prev) => [
+                ...prev,
+                {
+                  translation: translatedText,
+                  originalText: sourceText,
+                },
+              ]);
+              // remove the interim result
+              setInterimResult("");
+            })
+            .catch((err) => {
+              setApiErr(err);
+            });
+
+          // THIS VERSION USES API KEY
+          // googleTranslate.translate(
+          //   transcript,
+          //   lang,
+          //   targetLang,
+          //   (err, result) => {
+          //     if (err) {
+          //       setApiErr(err);
+          //     } else {
+          //       setSpeechArr((prev) => [
+          //         ...prev,
+          //         {
+          //           translation: result.translatedText,
+          //           originalText: result.originalText,
+          //         },
+          //       ]);
+          //       // remove the interim result
+          //       setInterimResult("");
+          //     }
+          //   }
+          // );
         } else {
           setSpeechArr((prev) => [...prev, transcriptCapitalized]);
           // remove the interim result
