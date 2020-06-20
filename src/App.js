@@ -5,17 +5,17 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  TextField,
   IconButton,
 } from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
 import ResetIcon from "@material-ui/icons/Replay";
 import TranslateIcon from "@material-ui/icons/Translate";
-import DoneIcon from "@material-ui/icons/Done";
 import PlayIcon from "@material-ui/icons/PlayArrow";
+import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { AppStyles } from "./AppStyles";
-import getGoogleTranslate from "google-translate";
+// import getGoogleTranslate from "google-translate";
+import { LANGUAGES } from "./utils/constants";
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 const ENGLISH = "en";
@@ -28,12 +28,34 @@ const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
 
 function App() {
-  const [apiKey, setApiKey] = useState(
-    window.localStorage.getItem("api_key") || null
-  ); // https://github.com/google/google-api-javascript-client
-  const googleTranslate = apiKey && getGoogleTranslate(apiKey);
+  // const [apiKey, setApiKey] = useState(
+  //   window.localStorage.getItem("api_key") || null
+  // ); // https://github.com/google/google-api-javascript-client
+  // const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
-  const [speechArr, setSpeechArr] = useState([]);
+  const [speechArr, setSpeechArr] = useState([
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // TODO: fix overlap
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hey heyheyheyheyheyheyheyheyheyheyhey",
+    // "hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi ",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // { translation: "heyhiho", originalText: "hieou" },
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+    // "hi",
+  ]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
   const [targetLang, setTargetLang] = useState(KOREAN);
@@ -63,7 +85,9 @@ function App() {
         return;
       } else if (isFinal) {
         // commit it to the speech array
-        if (targetLang && targetLang !== lang /*  && googleTranslate */) {
+        const shouldTranslate =
+          isTranslating && targetLang && targetLang !== lang;
+        if (shouldTranslate) {
           // if translating,
           // THIS VERSION USES FREE GOOGLE APP SCRIPT
           fetch(
@@ -83,6 +107,7 @@ function App() {
               ]);
               // remove the interim result
               setInterimResult("");
+              setApiErr(null);
             })
             .catch((err) => {
               setApiErr(err);
@@ -130,7 +155,15 @@ function App() {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", recognition.start);
     };
-  }, [recognition, isPaused, targetLang, lang, apiKey, googleTranslate]);
+  }, [
+    recognition,
+    isPaused,
+    targetLang,
+    lang,
+    // apiKey,
+    // googleTranslate,
+    isTranslating,
+  ]);
 
   const handleClick = () => {
     if (!recogStarted.current) {
@@ -161,24 +194,63 @@ function App() {
   const handlePlayPause = () => {
     setIsPaused(!isPaused);
   };
-  const [newApiKey, setNewApiKey] = useState(null);
-  const handleChangeApiKey = (e) => {
-    setNewApiKey(e.target.value);
+  // const [newApiKey, setNewApiKey] = useState(null);
+  // const handleChangeApiKey = (e) => {
+  //   setNewApiKey(e.target.value);
+  // };
+  // const handleSubmitApiKey = (e) => {
+  //   e.preventDefault();
+  //   window.localStorage.setItem("api_key", newApiKey);
+  //   setApiKey(newApiKey);
+  //   setApiErr(null);
+  // };
+  // const handleRemoveApiKey = () => {
+  //   window.localStorage.removeItem("api_key");
+  //   setApiKey(null);
+  // };
+  const handleSwapLanguages = () => {
+    setLang(targetLang);
+    setTargetLang(lang);
   };
-  const handleSubmitApiKey = (e) => {
-    window.localStorage.setItem("api_key", newApiKey);
-    setApiKey(newApiKey);
-    setApiErr(null);
-  };
-  const handleRemoveApiKey = () => {
-    window.localStorage.removeItem("api_key");
-    setApiKey(null);
-  };
-  const isTranslateDisabled = Boolean(!apiKey || apiErr);
+
+  // whenever the speechArr changes, scroll to the bottom
+  // (unless the user has scrolled up)
+  const paperRef = useRef();
+  const interimRef = useRef();
+  const [overflowPx, setOverflowPx] = useState(0);
+
+  useEffect(() => {
+    const { scrollHeight, offsetHeight } = paperRef.current;
+    setOverflowPx(scrollHeight - offsetHeight);
+    // when scrolled all the way to the bottom,
+    // scrollHeight = scrollTop + offsetHeight
+    // const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
+    // if (!userHasScrolledUp) {
+    // auto-scroll to the bottom
+    interimRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "start",
+    });
+    // }
+  }, [speechArr, interimResult]);
+
+  const isTranslateDisabled = Boolean(/* !apiKey || */ apiErr);
   return (
-    <AppStyles className="App">
-      {isTranslateDisabled && (
-        <div className="apiKeyPrompt shadow wide themed">
+    <AppStyles className="App" overflowPx={overflowPx}>
+      {apiErr ? <h1 className="error">{apiErr}</h1> : null}
+      {/* {!isTranslateDisabled && (
+        <div className="swapApiKey">
+          <Button size="small" variant="outlined" onClick={handleRemoveApiKey}>
+            Swap API key
+          </Button>
+        </div>
+      )} */}
+      {/* {isTranslateDisabled && (
+        <form
+          className="apiKeyPrompt shadow wide themed"
+          onSubmit={handleSubmitApiKey}
+        >
           <TextField
             type="text"
             variant="outlined"
@@ -187,11 +259,11 @@ function App() {
             error={Boolean(apiErr)}
             helperText={apiErr ? JSON.parse(apiErr.body).error.message : null}
           />
-          <IconButton disabled={!newApiKey} onClick={handleSubmitApiKey}>
+          <IconButton disabled={!newApiKey}>
             <DoneIcon />
           </IconButton>
-        </div>
-      )}
+        </form>
+      )} */}
       <div className="controls shadow wide themed">
         {started ? (
           <Button
@@ -210,26 +282,29 @@ function App() {
             Start
           </Button>
         )}
-        <Button
-          variant="outlined"
-          onClick={handleReset}
-          endIcon={<ResetIcon />}
-          disabled={!started}
-        >
-          Reset
-        </Button>
-        <Select value={lang} onChange={handleChangeLanguages}>
-          <MenuItem value={ENGLISH}>English</MenuItem>
-          <MenuItem value={KOREAN}>한국어</MenuItem>
-        </Select>
-        <Button
-          variant="outlined"
-          onClick={toggleTranslation}
-          endIcon={<TranslateIcon />}
-          disabled={!started || !targetLang || isTranslateDisabled}
-        >
-          {isTranslating ? "Stop" : "Trans"}
-        </Button>
+        <FormControl>
+          <InputLabel
+            shrink
+            id="translation-target"
+            style={{ whiteSpace: "nowrap" }}
+          >
+            I'm speaking...
+          </InputLabel>
+          <Select value={lang} onChange={handleChangeLanguages}>
+            <MenuItem value={LANGUAGES.KOREAN.CODE}>
+              {LANGUAGES.KOREAN.DISPLAY}
+            </MenuItem>
+            <MenuItem value={LANGUAGES.ENGLISH.CODE}>
+              {LANGUAGES.ENGLISH.DISPLAY}
+            </MenuItem>
+          </Select>
+        </FormControl>
+
+        <div className="swapBtnWrapper">
+          <IconButton onClick={handleSwapLanguages}>
+            <SwapIcon />
+          </IconButton>
+        </div>
 
         <FormControl>
           <InputLabel
@@ -245,63 +320,85 @@ function App() {
             disabled={isTranslateDisabled}
             onChange={handleChangetargetLang}
           >
-            <MenuItem value={KOREAN}>한국어</MenuItem>
-            <MenuItem value={ENGLISH}>English</MenuItem>
+            <MenuItem value={LANGUAGES.KOREAN.CODE}>
+              {LANGUAGES.KOREAN.DISPLAY}
+            </MenuItem>
+            <MenuItem value={LANGUAGES.ENGLISH.CODE}>
+              {LANGUAGES.ENGLISH.DISPLAY}
+            </MenuItem>
           </Select>
         </FormControl>
+        <Button
+          variant="outlined"
+          onClick={toggleTranslation}
+          endIcon={<TranslateIcon />}
+          disabled={!started || !targetLang || isTranslateDisabled}
+        >
+          {isTranslating ? "Stop" : "Trans"}
+        </Button>
       </div>
-      <div className="content shadow wide themed">
-        <div className="svgBackground">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern
-                id="lines"
-                x="0"
-                y="0"
-                width="1"
-                height="2em"
-                patternUnits="userSpaceOnUse"
+      <div className="contentWrapper wide themed shadow">
+        <div className="content" ref={paperRef}>
+          <SvgBackground />
+
+          {speechArr.map((speech, idx) =>
+            typeof speech === "object" ? (
+              <div
+                className="translatedTextWrapper"
+                key={`${speech.translation}-${idx}`}
               >
-                <line
-                  stroke="hsla(0,0%,0%,0.1)"
-                  x1="0"
-                  x2="100"
-                  y1="0"
-                  y2="0"
-                  strokeWidth="2"
-                />
-              </pattern>
-            </defs>
-
-            <rect x="0" y="0" width="100%" height="100%" fill="url(#lines)" />
-          </svg>
+                <p className="translation">{speech.translation}</p>
+                <p className="originalText">{speech.originalText}</p>
+              </div>
+            ) : (
+              <p key={`${speech}-${idx}`}>{speech}</p>
+            )
+          )}
+          <p className="interimResult" ref={interimRef}>
+            {interimResult}
+          </p>
+          <div className="leftMargin line1"></div>
+          <div className="leftMargin line2"></div>
         </div>
-
-        {speechArr.map((speech, idx) =>
-          typeof speech === "object" ? (
-            <div
-              className="translatedTextWrapper"
-              key={`${speech.translation}-${idx}`}
-            >
-              <p className="translation">{speech.translation}</p>
-              <p className="originalText">{speech.originalText}</p>
-            </div>
-          ) : (
-            <p key={`${speech}-${idx}`}>{speech}</p>
-          )
-        )}
-        <p>{interimResult}</p>
-        <div className="leftMargin line1"></div>
-        <div className="leftMargin line2"></div>
+        <IconButton
+          className="btnReset"
+          onClick={handleReset}
+          disabled={!started}
+        >
+          <ResetIcon />
+        </IconButton>
       </div>
-      {!isTranslateDisabled && (
-        <div className="swapApiKey">
-          <Button variant="outlined" onClick={handleRemoveApiKey}>
-            Swap API key
-          </Button>
-        </div>
-      )}
     </AppStyles>
+  );
+}
+
+function SvgBackground() {
+  return (
+    <div className="svgBackground">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern
+            id="lines"
+            x="0"
+            y="0"
+            width="1"
+            height="2em"
+            patternUnits="userSpaceOnUse"
+          >
+            <line
+              stroke="rgba(5, 8, 247, 0.16)"
+              x1="0"
+              x2="100"
+              y1="0"
+              y2="0"
+              strokeWidth="2"
+            />
+          </pattern>
+        </defs>
+
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#lines)" />
+      </svg>
+    </div>
   );
 }
 
