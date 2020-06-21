@@ -66,50 +66,6 @@ function App() {
     //   originalText:
     //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
     // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // {
-    //   translation:
-    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
-    //   originalText:
-    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // },
-    // "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
-    // "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
   ]);
   // const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
@@ -353,8 +309,8 @@ function App() {
     setOverflowPx(scrollHeight - offsetHeight);
     // when scrolled all the way to the bottom,
     // scrollHeight = scrollTop + offsetHeight
-    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
-    console.log("🌟🚨: App -> userHasScrolledUp", userHasScrolledUp);
+    // keep auto-scrolling down if the user is < 300px from the bottom
+    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) > 300;
     if (!userHasScrolledUp) {
       // auto-scroll to the bottom
       lastParagraphRef.current.scrollIntoView({
@@ -493,11 +449,9 @@ function App() {
             }`}
           >
             <p className={`originalText`}>{lastTwoResults[1]?.originalText}</p>
-            <p className="translation" ref={lastParagraphRef}>
-              {lastTwoResults[1]?.translation}
-            </p>
+            <p className="translation">{lastTwoResults[1]?.translation}</p>
           </div>
-
+          <p ref={lastParagraphRef}></p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
         </div>
