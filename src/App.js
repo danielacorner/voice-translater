@@ -150,7 +150,13 @@ function App() {
           //   }
           // );
         } else {
-          setSpeechArr((prev) => [...prev, transcriptCapitalized]);
+          setSpeechArr((prev) => [
+            ...prev,
+            {
+              translation: null,
+              originalText: transcriptCapitalized,
+            },
+          ]);
           // remove the interim result
           setInterimResult("");
         }
@@ -346,18 +352,26 @@ function App() {
         <div className="content" ref={paperRef}>
           <SvgBackground />
 
-          {speechArr.map((speech, idx) =>
-            typeof speech === "object" ? (
+          {speechArr.map(
+            (speech, idx) => (
+              // typeof speech === "object" ? (
               <div
                 className="translatedTextWrapper"
                 key={`${speech.translation}-${idx}`}
               >
+                <p
+                  className={`originalText${
+                    speech.translation ? " withTranslation" : ""
+                  }`}
+                >
+                  {speech.originalText}
+                </p>
                 <p className="translation">{speech.translation}</p>
-                <p className="originalText">{speech.originalText}</p>
               </div>
-            ) : (
-              <p key={`${speech}-${idx}`}>{speech}</p>
             )
+            // ) : (
+            //   <p key={`${speech}-${idx}`}>{speech}</p>
+            // )
           )}
           <p className="interimResult" ref={interimRef}>
             {interimResult}

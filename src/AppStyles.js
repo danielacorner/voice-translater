@@ -116,12 +116,15 @@ export const AppStyles = styled.div`
       position: relative;
       /* height: 56px; */
       display: flex;
-      flex-direction: column-reverse;
+      flex-direction: column;
       align-items: start;
       .originalText {
-        color: hsla(0, 0%, 30%, 1);
-        font-size: 0.8em;
-        letter-spacing: 0.1em;
+        transition: all 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
+        &.withTranslation {
+          color: hsla(0, 0%, 30%, 1);
+          font-size: 0.8em;
+          letter-spacing: 0.1em;
+        }
       }
     }
   }
