@@ -80,7 +80,22 @@ function App() {
 
   const [recognition] = useState(new SpeechToText());
 
-  useNoSleep(true);
+  useNoSleep(started);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setSpeechArr([
+        ...speechArr.slice(0, speechArr.length - 1),
+        {
+          originalText: "hey test",
+          translation: speechArr.length > 0 ? "heyheyhey" : null,
+        },
+        { originalText: "hey test", translation: null },
+      ]);
+      setInterimResult("hey test");
+    }, 5000);
+    // TODO: get the last element to render separately outside the map
+  }, [speechArr]);
 
   recognition.interimResults = true;
   useEffect(() => {
@@ -258,6 +273,8 @@ function App() {
     // }
   }, [speechArr, interimResult]);
 
+  const speechArrWithoutLastResult = speechArr.slice(0, -1);
+  const lastResult = speechArr.slice(-1);
   const isTranslateDisabled = Boolean(/* !apiKey || */ apiErr);
   return (
     <AppStyles className="App" overflowPx={overflowPx}>
@@ -352,7 +369,7 @@ function App() {
         <div className="content" ref={paperRef}>
           <SvgBackground />
 
-          {speechArr.map(
+          {speechArrWithoutLastResult.map(
             (speech, idx) => (
               // typeof speech === "object" ? (
               <div
@@ -373,8 +390,19 @@ function App() {
             //   <p key={`${speech}-${idx}`}>{speech}</p>
             // )
           )}
+          <div className="translatedTextWrapper">
+            <p
+              className={`originalText${
+                lastResult.translation ? " withTranslation" : ""
+              }`}
+            >
+              {interimResult || lastResult.originalText}
+            </p>
+            <p className="translation">{lastResult.translation}</p>
+          </div>
+
           <p className="interimResult" ref={interimRef}>
-            {interimResult}
+            {/* {interimResult} */}
           </p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
