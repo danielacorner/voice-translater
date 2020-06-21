@@ -27,7 +27,10 @@ const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
 
 const ChangeLanguage = (props) => (
-  <Select value={props.lang} onChange={props.handleChangeLanguages}>
+  <Select
+    value={props.lang}
+    onChange={(e) => props.handleChangeLanguages(e.target.value)}
+  >
     {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
       <MenuItem key={CODE} value={CODE}>
         {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
@@ -269,8 +272,7 @@ function App() {
   const handleChangetargetLang = (e) => {
     setTargetLang(e.target.value);
   };
-  const handleChangeLanguages = (e) => {
-    const newLang = e.target.value;
+  const handleChangeLanguages = (newLang) => {
     recognition.lang = newLang;
     setLang(newLang);
   };
@@ -294,7 +296,7 @@ function App() {
   const handleSwapLanguages = () => {
     const currentLang = lang;
     const currentTarget = targetLang;
-    setLang(currentTarget);
+    handleChangeLanguages(currentTarget);
     setTargetLang(currentLang);
   };
 
@@ -380,7 +382,7 @@ function App() {
           </InputLabel>
           <ChangeLanguage
             lang={lang}
-            handleChangeLanguages={handleChangeLanguages}
+            handleChangeLanguages={(e) => handleChangeLanguages(e.target.value)}
           ></ChangeLanguage>
         </FormControl>
 
