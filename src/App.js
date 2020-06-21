@@ -16,6 +16,7 @@ import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { AppStyles } from "./AppStyles";
 // import getGoogleTranslate from "google-translate";
 import { LANGUAGES, MAX_LISTITEM_LENGTH } from "./utils/constants";
+import useNoSleep from "use-no-sleep";
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 
@@ -78,6 +79,8 @@ function App() {
   const recogStarted = useRef(false);
 
   const [recognition] = useState(new SpeechToText());
+
+  useNoSleep(true);
 
   recognition.interimResults = true;
   useEffect(() => {
@@ -221,8 +224,10 @@ function App() {
   //   setApiKey(null);
   // };
   const handleSwapLanguages = () => {
-    setLang(targetLang);
-    setTargetLang(lang);
+    const currentLang = lang;
+    const currentTarget = targetLang;
+    setLang(currentTarget);
+    setTargetLang(currentLang);
   };
 
   // whenever the speechArr changes, scroll to the bottom
@@ -358,7 +363,7 @@ function App() {
             {interimResult}
           </p>
           <div className="leftMargin line1"></div>
-          {/* <div className="leftMargin line2"></div> */}
+          <div className="leftMargin line2"></div>
         </div>
         <IconButton
           className="btnReset"

@@ -72,7 +72,7 @@ export const AppStyles = styled.div`
     }
     .content {
       overflow: auto;
-      padding: 1.4em 1em 1em 5em;
+      padding: 1.4em 1em 2em 5em;
       max-height: calc(
         100vh - ${3 * PAPER_MARGINTOP_EMS + 2 * CONTROLS_HEIGHT_EMS}em
       );
@@ -108,7 +108,7 @@ export const AppStyles = styled.div`
         height: calc(100% + ${(props) => props.overflowPx}px);
         background: hsla(0, 100%, 50%, 0.1);
         &.line2 {
-          left: 4.5em;
+          left: 4.25em;
         }
       }
     }
