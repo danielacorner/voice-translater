@@ -66,6 +66,48 @@ function App() {
     //   originalText:
     //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
     // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
     // "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
     // "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
   ]);
@@ -122,6 +164,24 @@ function App() {
 
   recognition.interimResults = true;
   useEffect(() => {
+    const setInterimResult = (res) => {
+      const lastSpeechItem = speechArr.slice(-1)[0];
+      // we're in "interim mode" if we're waiting for the speaker to finish
+      const isInterimMode = !Boolean(lastSpeechItem?.translation);
+
+      setSpeechArr([
+        ...(isInterimMode
+          ? // modify the last item in the array
+            speechArr.slice(0, -1)
+          : // add the interim result to the end
+            speechArr),
+        {
+          originalText: res,
+          translation: null,
+        },
+      ]);
+    };
+
     const handleResult = (e) => {
       // get the transcript
       const transcript = Array.from(e.results)
@@ -152,7 +212,7 @@ function App() {
               const jsonText = resp.slice("callback(".length, -1);
               const { sourceText, translatedText } = JSON.parse(jsonText);
               setSpeechArr((prev) => [
-                ...prev,
+                ...prev.slice(0, -1),
                 {
                   translation: translatedText,
                   originalText: sourceText,
@@ -188,26 +248,26 @@ function App() {
           //   }
           // );
         } else {
-          setSpeechArr((prev) => [
-            ...prev,
-            {
-              translation: null,
-              originalText: transcriptCapitalized,
-            },
-          ]);
+          // setSpeechArr((prev) => [
+          //   ...prev,
+          //   {
+          //     translation: null,
+          //     originalText: transcriptCapitalized,
+          //   },
+          // ]);
           // remove the interim result
           // setInterimResult("");
         }
-      } else {
-        setSpeechArr((prev) => [
-          ...prev,
-          {
-            translation: null,
-            originalText: transcriptCapitalized,
-          },
-        ]);
+      } else if (!isFinal) {
+        // setSpeechArr((prev) => [
+        //   ...prev,
+        //   {
+        //     translation: null,
+        //     originalText: transcriptCapitalized,
+        //   },
+        // ]);
         // show the interim results
-        // setInterimResult(transcriptCapitalized);
+        setInterimResult(transcriptCapitalized);
       }
     };
 
@@ -226,6 +286,7 @@ function App() {
     isPaused,
     targetLang,
     lang,
+    speechArr,
     // apiKey,
     // googleTranslate,
     isTranslating,
@@ -284,24 +345,25 @@ function App() {
   // whenever the speechArr changes, scroll to the bottom
   // (unless the user has scrolled up)
   const paperRef = useRef();
-  const interimRef = useRef();
+  const lastParagraphRef = useRef();
   const [overflowPx, setOverflowPx] = useState(0);
 
   useEffect(() => {
-    const { scrollHeight, offsetHeight } = paperRef.current;
+    const { scrollHeight, offsetHeight, scrollTop } = paperRef.current;
     setOverflowPx(scrollHeight - offsetHeight);
     // when scrolled all the way to the bottom,
     // scrollHeight = scrollTop + offsetHeight
-    // const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
-    // if (!userHasScrolledUp) {
-    // auto-scroll to the bottom
-    interimRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-      inline: "start",
-    });
-    // }
-  }, [speechArr /* , interimResult */]);
+    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) < 100; // doesn't have to be 0
+    console.log("🌟🚨: App -> userHasScrolledUp", userHasScrolledUp);
+    if (!userHasScrolledUp) {
+      // auto-scroll to the bottom
+      lastParagraphRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "start",
+      });
+    }
+  }, [speechArr]);
 
   const speechArrWithoutLastTwoResults = speechArr.slice(0, -2);
   const lastTwoResults = speechArr.slice(-2);
@@ -403,16 +465,12 @@ function App() {
             (speech, idx) => (
               // typeof speech === "object" ? (
               <div
-                className="translatedTextWrapper"
+                className={`translatedTextWrapper${
+                  speech.translation ? " withTranslation" : ""
+                }`}
                 key={`${speech.translation}-${idx}`}
               >
-                <p
-                  className={`originalText${
-                    speech.translation ? " withTranslation" : ""
-                  }`}
-                >
-                  {speech.originalText}
-                </p>
+                <p className={`originalText`}>{speech.originalText}</p>
                 <p className="translation">{speech.translation}</p>
               </div>
             )
@@ -426,13 +484,7 @@ function App() {
               lastTwoResults[0]?.translation ? " withTranslation" : ""
             }`}
           >
-            <p
-              className={`originalText${
-                lastTwoResults[0]?.translation ? " withTranslation" : ""
-              }`}
-            >
-              {lastTwoResults[0]?.originalText}
-            </p>
+            <p className={`originalText`}>{lastTwoResults[0]?.originalText}</p>
             <p className="translation">{lastTwoResults[0]?.translation}</p>
           </div>
           <div
@@ -441,12 +493,11 @@ function App() {
             }`}
           >
             <p className={`originalText`}>{lastTwoResults[1]?.originalText}</p>
-            <p className="translation">{lastTwoResults[1]?.translation}</p>
+            <p className="translation" ref={lastParagraphRef}>
+              {lastTwoResults[1]?.translation}
+            </p>
           </div>
 
-          <p className="interimResult" ref={interimRef}>
-            {/* {interimResult} */}
-          </p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
         </div>
