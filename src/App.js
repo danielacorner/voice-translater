@@ -82,20 +82,20 @@ function App() {
 
   useNoSleep(started);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setSpeechArr([
-        ...speechArr.slice(0, speechArr.length - 1),
-        {
-          originalText: "hey test",
-          translation: speechArr.length > 0 ? "heyheyhey" : null,
-        },
-        { originalText: "hey test", translation: null },
-      ]);
-      setInterimResult("hey test");
-    }, 5000);
-    // TODO: get the last element to render separately outside the map
-  }, [speechArr]);
+  // TEST ANIMATION
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setSpeechArr([
+  //       ...speechArr.slice(0, speechArr.length - 1),
+  //       {
+  //         originalText: "hey test",
+  //         translation: speechArr.length > 0 ? "heyheyhey" : null,
+  //       },
+  //       { originalText: "hey test", translation: null },
+  //     ]);
+  //     setInterimResult("hey test");
+  //   }, 5000);
+  // }, [speechArr]);
 
   recognition.interimResults = true;
   useEffect(() => {
@@ -273,8 +273,8 @@ function App() {
     // }
   }, [speechArr, interimResult]);
 
-  const speechArrWithoutLastResult = speechArr.slice(0, -1);
-  const lastResult = speechArr.slice(-1);
+  const speechArrWithoutLastTwoResults = speechArr.slice(0, -2);
+  const lastTwoResults = speechArr.slice(-2);
   const isTranslateDisabled = Boolean(/* !apiKey || */ apiErr);
   return (
     <AppStyles className="App" overflowPx={overflowPx}>
@@ -369,7 +369,7 @@ function App() {
         <div className="content" ref={paperRef}>
           <SvgBackground />
 
-          {speechArrWithoutLastResult.map(
+          {speechArrWithoutLastTwoResults.map(
             (speech, idx) => (
               // typeof speech === "object" ? (
               <div
@@ -390,15 +390,26 @@ function App() {
             //   <p key={`${speech}-${idx}`}>{speech}</p>
             // )
           )}
+          {/* keep the last two results outside the map to allow separate rendering and animation  */}
           <div className="translatedTextWrapper">
             <p
               className={`originalText${
-                lastResult.translation ? " withTranslation" : ""
+                lastTwoResults[0]?.translation ? " withTranslation" : ""
               }`}
             >
-              {interimResult || lastResult.originalText}
+              {lastTwoResults[0]?.originalText}
             </p>
-            <p className="translation">{lastResult.translation}</p>
+            <p className="translation">{lastTwoResults[0]?.translation}</p>
+          </div>
+          <div className="translatedTextWrapper last">
+            <p
+              className={`originalText${
+                lastTwoResults[1]?.translation ? " withTranslation" : ""
+              }`}
+            >
+              {interimResult || lastTwoResults[1]?.originalText}
+            </p>
+            <p className="translation">{lastTwoResults[1]?.translation}</p>
           </div>
 
           <p className="interimResult" ref={interimRef}>

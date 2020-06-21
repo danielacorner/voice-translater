@@ -72,7 +72,7 @@ export const AppStyles = styled.div`
     }
     .content {
       overflow: auto;
-      padding: 1.4em 1em 2em 5em;
+      padding: 1.4em 1em 1em 5em;
       max-height: calc(
         100vh - ${3 * PAPER_MARGINTOP_EMS + 2 * CONTROLS_HEIGHT_EMS}em
       );
@@ -118,8 +118,11 @@ export const AppStyles = styled.div`
       display: flex;
       flex-direction: column;
       align-items: start;
+      &.last {
+        padding-bottom: 2em;
+      }
       .originalText {
-        transition: all 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
+        transition: all 0.5s ease-in-out;
         &.withTranslation {
           color: hsla(0, 0%, 30%, 1);
           font-size: 0.8em;
