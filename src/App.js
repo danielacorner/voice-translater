@@ -58,7 +58,16 @@ function App() {
   // ); // https://github.com/google/google-api-javascript-client
   // const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
-  const [speechArr, setSpeechArr] = useState([]);
+  const [speechArr, setSpeechArr] = useState([
+    // {
+    //   translation:
+    //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+    //   originalText:
+    //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // },
+    // "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    // "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
+  ]);
   const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
   const [targetLang, setTargetLang] = useState(LANGUAGES.KOREAN.CODE);
@@ -349,7 +358,7 @@ function App() {
             {interimResult}
           </p>
           <div className="leftMargin line1"></div>
-          <div className="leftMargin line2"></div>
+          {/* <div className="leftMargin line2"></div> */}
         </div>
         <IconButton
           className="btnReset"

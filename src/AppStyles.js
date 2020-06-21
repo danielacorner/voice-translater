@@ -114,16 +114,11 @@ export const AppStyles = styled.div`
     }
     .translatedTextWrapper {
       position: relative;
-      height: 56px;
+      /* height: 56px; */
       display: flex;
+      flex-direction: column-reverse;
       align-items: center;
-      .translation {
-        margin-bottom: -8px;
-      }
       .originalText {
-        white-space: nowrap;
-        position: absolute;
-        top: 4px;
         color: hsla(0, 0%, 30%, 1);
         font-size: 0.8em;
         letter-spacing: 0.1em;
