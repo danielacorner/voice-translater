@@ -84,7 +84,7 @@ export const AppStyles = styled.div`
       margin-top: ${PAPER_MARGINTOP_EMS}em;
       min-height: 80px;
       align-items: start;
-      justify-content: left;
+      justify-items: left;
       grid-gap: 11px;
       p {
         height: min-content;
@@ -117,7 +117,7 @@ export const AppStyles = styled.div`
       /* height: 56px; */
       display: flex;
       flex-direction: column-reverse;
-      align-items: center;
+      align-items: start;
       .originalText {
         color: hsla(0, 0%, 30%, 1);
         font-size: 0.8em;
