@@ -122,11 +122,23 @@ export const AppStyles = styled.div`
         padding-bottom: 2em;
       }
       .originalText {
-        transition: all 0.5s ease-in-out;
-        &.withTranslation {
+        transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .translation {
+        transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      &.withTranslation {
+        .originalText {
           color: hsla(0, 0%, 30%, 1);
           font-size: 0.8em;
           letter-spacing: 0.1em;
+        }
+        .translation {
+          opacity: 1;
+          transform: translateY(0px);
         }
       }
     }

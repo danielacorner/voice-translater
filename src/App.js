@@ -69,7 +69,7 @@ function App() {
     // "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
     // "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
   ]);
-  const [interimResult, setInterimResult] = useState("");
+  // const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
   const [targetLang, setTargetLang] = useState(LANGUAGES.KOREAN.CODE);
   const [lang, setLang] = useState(LANGUAGES.ENGLISH.CODE);
@@ -86,16 +86,39 @@ function App() {
   // useEffect(() => {
   //   setTimeout(() => {
   //     setSpeechArr([
-  //       ...speechArr.slice(0, speechArr.length - 1),
   //       {
   //         originalText: "hey test",
-  //         translation: speechArr.length > 0 ? "heyheyhey" : null,
+  //         translation: null,
   //       },
-  //       { originalText: "hey test", translation: null },
   //     ]);
-  //     setInterimResult("hey test");
-  //   }, 5000);
-  // }, [speechArr]);
+  //   }, 0.5 * 1000);
+  //   setTimeout(() => {
+  //     setSpeechArr([
+  //       {
+  //         originalText: "hey test",
+  //         translation: "heyheyhey",
+  //       },
+  //     ]);
+  //   }, 0.5 * 2000);
+  //   setTimeout(() => {
+  //     setSpeechArr([
+  //       {
+  //         originalText: "hey test",
+  //         translation: "heyheyhey",
+  //       },
+  //       { originalText: "second test", translation: null },
+  //     ]);
+  //   }, 0.5 * 3000);
+  //   setTimeout(() => {
+  //     setSpeechArr([
+  //       {
+  //         originalText: "hey test",
+  //         translation: "heyheyhey",
+  //       },
+  //       { originalText: "second test", translation: "helloooo" },
+  //     ]);
+  //   }, 0.5 * 4000);
+  // }, []);
 
   recognition.interimResults = true;
   useEffect(() => {
@@ -136,7 +159,7 @@ function App() {
                 },
               ]);
               // remove the interim result
-              setInterimResult("");
+              // setInterimResult("");
               setApiErr(null);
             })
             .catch((err) => {
@@ -173,11 +196,18 @@ function App() {
             },
           ]);
           // remove the interim result
-          setInterimResult("");
+          // setInterimResult("");
         }
       } else {
+        setSpeechArr((prev) => [
+          ...prev,
+          {
+            translation: null,
+            originalText: transcriptCapitalized,
+          },
+        ]);
         // show the interim results
-        setInterimResult(transcriptCapitalized);
+        // setInterimResult(transcriptCapitalized);
       }
     };
 
@@ -271,7 +301,7 @@ function App() {
       inline: "start",
     });
     // }
-  }, [speechArr, interimResult]);
+  }, [speechArr /* , interimResult */]);
 
   const speechArrWithoutLastTwoResults = speechArr.slice(0, -2);
   const lastTwoResults = speechArr.slice(-2);
@@ -391,7 +421,11 @@ function App() {
             // )
           )}
           {/* keep the last two results outside the map to allow separate rendering and animation  */}
-          <div className="translatedTextWrapper">
+          <div
+            className={`translatedTextWrapper${
+              lastTwoResults[0]?.translation ? " withTranslation" : ""
+            }`}
+          >
             <p
               className={`originalText${
                 lastTwoResults[0]?.translation ? " withTranslation" : ""
@@ -401,14 +435,12 @@ function App() {
             </p>
             <p className="translation">{lastTwoResults[0]?.translation}</p>
           </div>
-          <div className="translatedTextWrapper last">
-            <p
-              className={`originalText${
-                lastTwoResults[1]?.translation ? " withTranslation" : ""
-              }`}
-            >
-              {interimResult || lastTwoResults[1]?.originalText}
-            </p>
+          <div
+            className={`translatedTextWrapper last${
+              lastTwoResults[1]?.translation ? " withTranslation" : ""
+            }`}
+          >
+            <p className={`originalText`}>{lastTwoResults[1]?.originalText}</p>
             <p className="translation">{lastTwoResults[1]?.translation}</p>
           </div>
 
