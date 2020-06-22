@@ -84,42 +84,51 @@ function App() {
   useNoSleep(started);
 
   // TEST ANIMATION
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setSpeechArr([
-  //       {
-  //         originalText: "hey test",
-  //         translation: null,
-  //       },
-  //     ]);
-  //   }, 0.5 * 1000);
-  //   setTimeout(() => {
-  //     setSpeechArr([
-  //       {
-  //         originalText: "hey test",
-  //         translation: "heyheyhey",
-  //       },
-  //     ]);
-  //   }, 0.5 * 2000);
-  //   setTimeout(() => {
-  //     setSpeechArr([
-  //       {
-  //         originalText: "hey test",
-  //         translation: "heyheyhey",
-  //       },
-  //       { originalText: "second test", translation: null },
-  //     ]);
-  //   }, 0.5 * 3000);
-  //   setTimeout(() => {
-  //     setSpeechArr([
-  //       {
-  //         originalText: "hey test",
-  //         translation: "heyheyhey",
-  //       },
-  //       { originalText: "second test", translation: "helloooo" },
-  //     ]);
-  //   }, 0.5 * 4000);
-  // }, []);
+  useEffect(() => {
+    // setInterval(() => {
+    //   setSpeechArr((p) => [
+    //     ...p,
+    //     {
+    //       originalText: "hey test",
+    //       translation: null,
+    //     },
+    //   ]);
+    // }, 3 * 1000);
+    // setTimeout(() => {
+    //   setSpeechArr([
+    //     {
+    //       originalText: "hey test",
+    //       translation: null,
+    //     },
+    //   ]);
+    // }, 0.5 * 1000);
+    // setTimeout(() => {
+    //   setSpeechArr([
+    //     {
+    //       originalText: "hey test",
+    //       translation: "heyheyhey",
+    //     },
+    //   ]);
+    // }, 0.5 * 2000);
+    // setTimeout(() => {
+    //   setSpeechArr([
+    //     {
+    //       originalText: "hey test",
+    //       translation: "heyheyhey",
+    //     },
+    //     { originalText: "second test", translation: null },
+    //   ]);
+    // }, 0.5 * 3000);
+    // setTimeout(() => {
+    //   setSpeechArr([
+    //     {
+    //       originalText: "hey test",
+    //       translation: "heyheyhey",
+    //     },
+    //     { originalText: "second test", translation: "helloooo" },
+    //   ]);
+    // }, 0.5 * 4000);
+  }, []);
 
   recognition.interimResults = true;
   useEffect(() => {
@@ -305,15 +314,20 @@ function App() {
   const paperRef = useRef();
   const lastParagraphRef = useRef();
   const [overflowPx, setOverflowPx] = useState(0);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-  useEffect(() => {
+  const handleScroll = (e) => {
     const { scrollHeight, offsetHeight, scrollTop } = paperRef.current;
+    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) > 120;
+    setShouldAutoScroll(!userHasScrolledUp);
+  };
+  useEffect(() => {
+    const { scrollHeight, offsetHeight } = paperRef.current;
     setOverflowPx(scrollHeight - offsetHeight);
     // when scrolled all the way to the bottom,
     // scrollHeight = scrollTop + offsetHeight
     // keep auto-scrolling down if the user is < 300px from the bottom
-    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) > 300;
-    if (!userHasScrolledUp) {
+    if (shouldAutoScroll) {
       // auto-scroll to the bottom
       lastParagraphRef.current.scrollIntoView({
         behavior: "smooth",
@@ -321,7 +335,7 @@ function App() {
         inline: "start",
       });
     }
-  }, [speechArr]);
+  }, [speechArr, shouldAutoScroll]);
 
   const speechArrWithoutLastTwoResults = speechArr.slice(0, -2);
   const lastTwoResults = speechArr.slice(-2);
@@ -416,7 +430,7 @@ function App() {
         </Button>
       </div>
       <div className="contentWrapper wide themed shadow">
-        <div className="content" ref={paperRef}>
+        <div className="content" ref={paperRef} onScroll={handleScroll}>
           <SvgBackground />
 
           {speechArrWithoutLastTwoResults.map(
