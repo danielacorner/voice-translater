@@ -430,7 +430,12 @@ function App() {
         </Button>
       </div>
       <div className="contentWrapper wide themed shadow">
-        <div className="content" ref={paperRef} onScroll={handleScroll}>
+        <div
+          className="content"
+          ref={paperRef}
+          onScroll={handleScroll}
+          onTouchMove={handleScroll}
+        >
           <SvgBackground />
 
           {speechArrWithoutLastTwoResults.map(
