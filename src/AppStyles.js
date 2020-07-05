@@ -143,4 +143,13 @@ export const AppStyles = styled.div`
       }
     }
   }
+  .utterance {
+    position: relative;
+    .btnSpeak {
+      position: absolute;
+      left: -68px;
+      top: 0;
+      bottom: 0;
+    }
+  }
 `;

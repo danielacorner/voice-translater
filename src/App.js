@@ -9,7 +9,8 @@ import {
 } from "@material-ui/core";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
-import ResetIcon from "@material-ui/icons/Replay";
+import SpeakIcon from "@material-ui/icons/VolumeUpRounded";
+import ResetIcon from "@material-ui/icons/ReplayRounded";
 import TranslateIcon from "@material-ui/icons/Translate";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import SwapIcon from "@material-ui/icons/SwapHoriz";
@@ -17,6 +18,7 @@ import { AppStyles } from "./AppStyles";
 // import getGoogleTranslate from "google-translate";
 import { LANGUAGES, MAX_LISTITEM_LENGTH } from "./utils/constants";
 import useNoSleep from "use-no-sleep";
+import { speak } from "./utils/speechSynthesis";
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 
@@ -68,6 +70,8 @@ function App() {
     //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
     //   originalText:
     //     "Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean Korean ",
+    //   originalLang: LANGUAGES.ENGLISH.CODE,
+    //   translationLang: LANGUAGES.KOREAN.CODE,
     // },
   ]);
   // const [interimResult, setInterimResult] = useState("");
@@ -145,7 +149,9 @@ function App() {
             speechArr),
         {
           originalText: res,
+          originalLang: lang,
           translation: null,
+          translationLang: null,
         },
       ]);
     };
@@ -183,7 +189,9 @@ function App() {
                 ...prev.slice(0, -1),
                 {
                   translation: translatedText,
+                  translationLang: targetLang,
                   originalText: sourceText,
+                  originalLang: lang,
                 },
               ]);
               // remove the interim result
@@ -447,8 +455,22 @@ function App() {
                 }`}
                 key={`${speech.translation}-${idx}`}
               >
-                <p className={`originalText`}>{speech.originalText}</p>
-                <p className="translation">{speech.translation}</p>
+                <p
+                  className={`utterance originalText`}
+                  data-lang={speech.originalLang}
+                >
+                  {speech.originalText}
+                  <SpeakButton speech={speech.originalText} />
+                </p>
+                <p
+                  className="utterance translation"
+                  data-lang={speech.translationLang}
+                  // onClick={speak}
+                  // onTouchStart={speak}
+                >
+                  {speech.translation}
+                  <SpeakButton speech={speech.translation} />
+                </p>
               </div>
             )
             // ) : (
@@ -461,16 +483,40 @@ function App() {
               lastTwoResults[0]?.translation ? " withTranslation" : ""
             }`}
           >
-            <p className={`originalText`}>{lastTwoResults[0]?.originalText}</p>
-            <p className="translation">{lastTwoResults[0]?.translation}</p>
+            <p
+              className={`utterance originalText`}
+              data-lang={lastTwoResults[0]?.originalLang}
+            >
+              {lastTwoResults[0]?.originalText}
+              <SpeakButton speech={lastTwoResults[0]?.originalText} />
+            </p>
+            <p
+              className="utterance translation"
+              data-lang={lastTwoResults[0]?.translationLang}
+            >
+              {lastTwoResults[0]?.translation}
+              <SpeakButton speech={lastTwoResults[0]?.translation} />
+            </p>
           </div>
           <div
             className={`translatedTextWrapper last${
               lastTwoResults[1]?.translation ? " withTranslation" : ""
             }`}
           >
-            <p className={`originalText`}>{lastTwoResults[1]?.originalText}</p>
-            <p className="translation">{lastTwoResults[1]?.translation}</p>
+            <p
+              className={`utterance originalText`}
+              data-lang={lastTwoResults[0]?.originalLang}
+            >
+              {lastTwoResults[1]?.originalText}
+              <SpeakButton />
+            </p>
+            <p
+              className="utterance translation"
+              data-lang={lastTwoResults[0]?.translationLang}
+            >
+              {lastTwoResults[1]?.translation}
+              <SpeakButton />
+            </p>
           </div>
           <p ref={lastParagraphRef}></p>
           <div className="leftMargin line1"></div>
@@ -516,6 +562,14 @@ function SvgBackground() {
       </svg>
     </div>
   );
+}
+
+function SpeakButton({ speech }) {
+  return speech && "speechSynthesis" in window ? (
+    <IconButton className="btnSpeak" onClick={speak} onTouchStart={speak}>
+      <SpeakIcon />
+    </IconButton>
+  ) : null;
 }
 
 export default App;
