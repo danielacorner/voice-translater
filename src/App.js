@@ -247,10 +247,16 @@ function App() {
       }
     };
 
-    recognition.addEventListener("result", handleResult);
-
-    // when the event ends, start it again right away
-    recognition.addEventListener("end", recognition.start);
+    if (isPaused) {
+      recognition.stop();
+      recogStarted.current = false;
+      recognition.removeEventListener("result", handleResult);
+      recognition.removeEventListener("end", recognition.start);
+    } else {
+      recognition.addEventListener("result", handleResult);
+      // when the event ends, start it again right away
+      recognition.addEventListener("end", recognition.start);
+    }
 
     return () => {
       // cleanup
@@ -294,7 +300,11 @@ function App() {
     setLang(newLang);
   };
   const handlePlayPause = () => {
-    setIsPaused(!isPaused);
+    const newIsPaused = !isPaused;
+    setIsPaused(newIsPaused);
+    if (!newIsPaused) {
+      recognition.start();
+    }
   };
   // const [newApiKey, setNewApiKey] = useState(null);
   // const handleChangeApiKey = (e) => {
