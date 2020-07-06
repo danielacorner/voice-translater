@@ -83,7 +83,16 @@ function App() {
 
   const recogStarted = useRef(false);
 
-  const [recognition] = useState(new SpeechToText());
+  const [recognition] = useState(SpeechToText ? new SpeechToText() : null);
+
+  useEffect(() => {
+    if (!recognition) {
+      window.alert(
+        "Sorry, your browser doesn't support the SpeechRecognition API 😢"
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useNoSleep(started);
 
@@ -134,7 +143,9 @@ function App() {
     // }, 0.5 * 4000);
   }, []);
 
-  recognition.interimResults = true;
+  if (recognition) {
+    recognition.interimResults = true;
+  }
   useEffect(() => {
     const setInterimResult = (res) => {
       const lastSpeechItem = speechArr.slice(-1)[0];
@@ -247,7 +258,9 @@ function App() {
       }
     };
 
-    if (isPaused) {
+    if (!recognition) {
+      // nada
+    } else if (isPaused) {
       recognition.stop();
       recogStarted.current = false;
       recognition.removeEventListener("result", handleResult);
@@ -259,9 +272,11 @@ function App() {
     }
 
     return () => {
-      // cleanup
-      recognition.removeEventListener("result", handleResult);
-      recognition.removeEventListener("end", recognition.start);
+      if (recognition) {
+        // cleanup
+        recognition.removeEventListener("result", handleResult);
+        recognition.removeEventListener("end", recognition.start);
+      }
     };
   }, [
     recognition,
@@ -275,7 +290,7 @@ function App() {
   ]);
 
   const handleClick = () => {
-    if (!recogStarted.current) {
+    if (recognition && !recogStarted.current) {
       // only start the first time
       recognition.start();
     }
@@ -302,7 +317,7 @@ function App() {
   const handlePlayPause = () => {
     const newIsPaused = !isPaused;
     setIsPaused(newIsPaused);
-    if (!newIsPaused) {
+    if (recognition && !newIsPaused) {
       recognition.start();
     }
   };
