@@ -90,51 +90,17 @@ function App() {
   useNoSleep(started);
 
   // TEST ANIMATION
-  useEffect(() => {
-    // setInterval(() => {
-    //   setSpeechArr((p) => [
-    //     ...p,
-    //     {
-    //       originalText: "hey test",
-    //       translation: null,
-    //     },
-    //   ]);
-    // }, 3 * 1000);
-    // setTimeout(() => {
-    //   setSpeechArr([
-    //     {
-    //       originalText: "hey test",
-    //       translation: null,
-    //     },
-    //   ]);
-    // }, 0.5 * 1000);
-    // setTimeout(() => {
-    //   setSpeechArr([
-    //     {
-    //       originalText: "hey test",
-    //       translation: "heyheyhey",
-    //     },
-    //   ]);
-    // }, 0.5 * 2000);
-    // setTimeout(() => {
-    //   setSpeechArr([
-    //     {
-    //       originalText: "hey test",
-    //       translation: "heyheyhey",
-    //     },
-    //     { originalText: "second test", translation: null },
-    //   ]);
-    // }, 0.5 * 3000);
-    // setTimeout(() => {
-    //   setSpeechArr([
-    //     {
-    //       originalText: "hey test",
-    //       translation: "heyheyhey",
-    //     },
-    //     { originalText: "second test", translation: "helloooo" },
-    //   ]);
-    // }, 0.5 * 4000);
-  }, []);
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     setSpeechArr((p) => [
+  //       ...p,
+  //       {
+  //         originalText: "hey test",
+  //         translation: "heyheyhey",
+  //       },
+  //     ]);
+  //   }, 1 * 1000);
+  // }, []);
 
   if (recognition) {
     recognition.interimResults = true;
@@ -231,6 +197,7 @@ function App() {
   const handleClick = () => {
     if (recognition && !recogStarted.current) {
       // only start the first time
+      recognition.lang = lang;
       recognition.start();
     }
     recogStarted.current = true;
@@ -287,7 +254,7 @@ function App() {
       // auto-scroll to the bottom
       lastParagraphRef.current.scrollIntoView({
         behavior: "smooth",
-        block: "end",
+        block: "start",
         inline: "start",
       });
     }
@@ -496,10 +463,10 @@ function SvgBackground() {
 function SpeakButton({ speech, isTranslation }) {
   return speech && "speechSynthesis" in window ? (
     <IconButton
-      style={{ marginLeft: isTranslation ? 10 : -10 }}
+      style={{ marginLeft: isTranslation ? 12 : -16 }}
       className="btnSpeak"
       onClick={speak}
-      onTouchEnd={speak}
+      // onTouchStart={speak}
     >
       <SpeakIcon />
     </IconButton>

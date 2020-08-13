@@ -44,6 +44,7 @@ export function speak(event) {
     }
     utterThis.pitch = 1;
     utterThis.rate = 1;
+    utterThis.lang = lang;
     synth.speak(utterThis);
   }
 }

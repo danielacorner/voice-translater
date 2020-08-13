@@ -1,7 +1,7 @@
 import styled from "styled-components/macro";
 
 const PAPER_MARGINTOP_EMS = 2;
-const CONTROLS_HEIGHT_EMS = 4;
+const CONTROLS_HEIGHT_EMS = 8;
 const BREAKPOINT_TWOROWS = 552;
 
 export const AppStyles = styled.div`
@@ -26,10 +26,7 @@ export const AppStyles = styled.div`
     display: grid;
   }
   .controls {
-    height: ${CONTROLS_HEIGHT_EMS * 2}em;
-    @media (min-width: ${BREAKPOINT_TWOROWS}px) {
-      height: ${CONTROLS_HEIGHT_EMS}em;
-    }
+    height: ${CONTROLS_HEIGHT_EMS}em;
     padding: 1em;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
@@ -149,8 +146,9 @@ export const AppStyles = styled.div`
     .btnSpeak {
       position: absolute;
       left: -68px;
-      top: 0;
-      bottom: 0;
+      height: 48px;
+      top: calc(50% - 24px);
+      color: rgba(0, 0, 0, 0.4);
     }
   }
   .btnStartWrapper {
@@ -160,6 +158,7 @@ export const AppStyles = styled.div`
     }
   }
   .lastParagraph {
-    height: 15vh;
+    height: 10vh;
+    width: 100%;
   }
 `;
