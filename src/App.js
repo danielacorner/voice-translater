@@ -11,11 +11,9 @@ import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
 import SpeakIcon from "@material-ui/icons/VolumeUpRounded";
 import ResetIcon from "@material-ui/icons/ReplayRounded";
-import TranslateIcon from "@material-ui/icons/Translate";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { AppStyles } from "./AppStyles";
-// import getGoogleTranslate from "google-translate";
 import { LANGUAGES, MAX_LISTITEM_LENGTH } from "./utils/constants";
 import useNoSleep from "use-no-sleep";
 import { speak } from "./utils/speechSynthesis";
@@ -59,10 +57,6 @@ const ChangeTargetLanguage = (props) => (
 );
 
 function App() {
-  // const [apiKey, setApiKey] = useState(
-  //   window.localStorage.getItem("api_key") || null
-  // ); // https://github.com/google/google-api-javascript-client
-  // const googleTranslate = apiKey && getGoogleTranslate(apiKey);
   const [apiErr, setApiErr] = useState(null);
   const [speechArr, setSpeechArr] = useState([
     // {
@@ -76,10 +70,9 @@ function App() {
   ]);
   // const [interimResult, setInterimResult] = useState("");
   const [started, setStarted] = useState(false);
-  const [targetLang, setTargetLang] = useState(LANGUAGES.KOREAN.CODE);
-  const [lang, setLang] = useState(LANGUAGES.ENGLISH.CODE);
+  const [targetLang, setTargetLang] = useState(LANGUAGES.ENGLISH.CODE);
+  const [lang, setLang] = useState(LANGUAGES.KOREAN.CODE);
   const [isPaused, setIsPaused] = useState(true);
-  const [isTranslating, setIsTranslating] = useState(false);
 
   const recogStarted = useRef(false);
 
@@ -179,80 +172,35 @@ function App() {
         transcript[0].toUpperCase() + transcript.slice(1);
 
       const isFinal = Array.from(e.results).some((result) => result.isFinal);
+
       if (isPaused) {
         return;
       } else if (isFinal) {
-        // commit it to the speech array
-        const shouldTranslate =
-          isTranslating && targetLang && targetLang !== lang;
-        if (shouldTranslate) {
-          // if translating,
-          // THIS VERSION USES FREE GOOGLE APP SCRIPT
-          fetch(
-            `${SCRIPT_URL}?source=${lang}&target=${targetLang}&q=${transcript}`
-          )
-            .then((resp) => resp.text())
-            .then((resp) => {
-              // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
-              const jsonText = resp.slice("callback(".length, -1);
-              const { sourceText, translatedText } = JSON.parse(jsonText);
-              setSpeechArr((prev) => [
-                ...prev.slice(0, -1),
-                {
-                  translation: translatedText,
-                  translationLang: targetLang,
-                  originalText: sourceText,
-                  originalLang: lang,
-                },
-              ]);
-              // remove the interim result
-              // setInterimResult("");
-              setApiErr(null);
-            })
-            .catch((err) => {
-              setApiErr(err);
-            });
-
-          // THIS VERSION USES API KEY
-          // googleTranslate.translate(
-          //   transcript,
-          //   lang,
-          //   targetLang,
-          //   (err, result) => {
-          //     if (err) {
-          //       setApiErr(err);
-          //     } else {
-          //       setSpeechArr((prev) => [
-          //         ...prev,
-          //         {
-          //           translation: result.translatedText,
-          //           originalText: result.originalText,
-          //         },
-          //       ]);
-          //       // remove the interim result
-          //       setInterimResult("");
-          //     }
-          //   }
-          // );
-        } else {
-          // setSpeechArr((prev) => [
-          //   ...prev,
-          //   {
-          //     translation: null,
-          //     originalText: transcriptCapitalized,
-          //   },
-          // ]);
-          // remove the interim result
-          // setInterimResult("");
-        }
+        fetch(
+          `${SCRIPT_URL}?source=${lang}&target=${targetLang}&q=${transcript}`
+        )
+          .then((resp) => resp.text())
+          .then((resp) => {
+            // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
+            const jsonText = resp.slice("callback(".length, -1);
+            const { sourceText, translatedText } = JSON.parse(jsonText);
+            setSpeechArr((prev) => [
+              ...prev.slice(0, -1),
+              {
+                translation: translatedText,
+                translationLang: targetLang,
+                originalText: sourceText,
+                originalLang: lang,
+              },
+            ]);
+            // remove the interim result
+            // setInterimResult("");
+            setApiErr(null);
+          })
+          .catch((err) => {
+            setApiErr(err);
+          });
       } else if (!isFinal) {
-        // setSpeechArr((prev) => [
-        //   ...prev,
-        //   {
-        //     translation: null,
-        //     originalText: transcriptCapitalized,
-        //   },
-        // ]);
         // show the interim results
         setInterimResult(transcriptCapitalized);
       }
@@ -278,16 +226,7 @@ function App() {
         recognition.removeEventListener("end", recognition.start);
       }
     };
-  }, [
-    recognition,
-    isPaused,
-    targetLang,
-    lang,
-    speechArr,
-    // apiKey,
-    // googleTranslate,
-    isTranslating,
-  ]);
+  }, [recognition, isPaused, targetLang, lang, speechArr]);
 
   const handleClick = () => {
     if (recognition && !recogStarted.current) {
@@ -302,11 +241,7 @@ function App() {
     setStarted(false);
     setSpeechArr([]);
   };
-  const toggleTranslation = () => {
-    setIsTranslating((p) => !p);
-    // https://translation.googleapis.com/language/translate/v2
-    // https://cloud.google.com/translate/docs/basic/setup-basic
-  };
+
   const handleChangetargetLang = (e) => {
     setTargetLang(e.target.value);
   };
@@ -321,20 +256,7 @@ function App() {
       recognition.start();
     }
   };
-  // const [newApiKey, setNewApiKey] = useState(null);
-  // const handleChangeApiKey = (e) => {
-  //   setNewApiKey(e.target.value);
-  // };
-  // const handleSubmitApiKey = (e) => {
-  //   e.preventDefault();
-  //   window.localStorage.setItem("api_key", newApiKey);
-  //   setApiKey(newApiKey);
-  //   setApiErr(null);
-  // };
-  // const handleRemoveApiKey = () => {
-  //   window.localStorage.removeItem("api_key");
-  //   setApiKey(null);
-  // };
+
   const handleSwapLanguages = () => {
     const currentLang = lang;
     const currentTarget = targetLang;
@@ -351,9 +273,10 @@ function App() {
 
   const handleScroll = (e) => {
     const { scrollHeight, offsetHeight, scrollTop } = paperRef.current;
-    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) > 120;
+    const userHasScrolledUp = scrollHeight - (scrollTop + offsetHeight) > 300;
     setShouldAutoScroll(!userHasScrolledUp);
   };
+
   useEffect(() => {
     const { scrollHeight, offsetHeight } = paperRef.current;
     setOverflowPx(scrollHeight - offsetHeight);
@@ -376,49 +299,7 @@ function App() {
   return (
     <AppStyles className="App" overflowPx={overflowPx}>
       {apiErr ? <h1 className="error">{apiErr}</h1> : null}
-      {/* {!isTranslateDisabled && (
-        <div className="swapApiKey">
-          <Button size="small" variant="outlined" onClick={handleRemoveApiKey}>
-            Swap API key
-          </Button>
-        </div>
-      )} */}
-      {/* {isTranslateDisabled && (
-        <form
-          className="apiKeyPrompt shadow wide themed"
-          onSubmit={handleSubmitApiKey}
-        >
-          <TextField
-            type="text"
-            variant="outlined"
-            onChange={handleChangeApiKey}
-            label={"Google Translate API key"}
-            error={Boolean(apiErr)}
-            helperText={apiErr ? JSON.parse(apiErr.body).error.message : null}
-          />
-          <IconButton disabled={!newApiKey}>
-            <DoneIcon />
-          </IconButton>
-        </form>
-      )} */}
       <div className="controls shadow wide themed">
-        {started ? (
-          <Button
-            variant="outlined"
-            onClick={handlePlayPause}
-            endIcon={isPaused ? <PlayIcon /> : <MicOffIcon />}
-          >
-            {isPaused ? "Resume" : "Pause"}
-          </Button>
-        ) : (
-          <Button
-            variant="outlined"
-            onClick={handleClick}
-            endIcon={<MicIcon />}
-          >
-            Start
-          </Button>
-        )}
         <FormControl>
           <InputLabel
             shrink
@@ -453,14 +334,25 @@ function App() {
             isTranslateDisabled={isTranslateDisabled}
           ></ChangeTargetLanguage>
         </FormControl>
-        <Button
-          variant="outlined"
-          onClick={toggleTranslation}
-          endIcon={<TranslateIcon />}
-          disabled={!started || !targetLang || isTranslateDisabled}
-        >
-          {isTranslating ? "Stop" : "Trans"}
-        </Button>
+        <div className="btnStartWrapper">
+          {started ? (
+            <Button
+              variant="outlined"
+              onClick={handlePlayPause}
+              endIcon={isPaused ? <PlayIcon /> : <MicOffIcon />}
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              onClick={handleClick}
+              endIcon={<MicIcon />}
+            >
+              Start
+            </Button>
+          )}
+        </div>
       </div>
       <div className="contentWrapper wide themed shadow">
         <div
@@ -485,7 +377,10 @@ function App() {
                   data-lang={speech.originalLang}
                 >
                   {speech.originalText}
-                  <SpeakButton speech={speech.originalText} />
+                  <SpeakButton
+                    isTranslation={false}
+                    speech={speech.originalText}
+                  />
                 </p>
                 <p
                   className="utterance translation"
@@ -494,7 +389,10 @@ function App() {
                   // onTouchStart={speak}
                 >
                   {speech.translation}
-                  <SpeakButton speech={speech.translation} />
+                  <SpeakButton
+                    isTranslation={true}
+                    speech={speech.translation}
+                  />
                 </p>
               </div>
             )
@@ -513,14 +411,20 @@ function App() {
               data-lang={lastTwoResults[0]?.originalLang}
             >
               {lastTwoResults[0]?.originalText}
-              <SpeakButton speech={lastTwoResults[0]?.originalText} />
+              <SpeakButton
+                isTranslation={false}
+                speech={lastTwoResults[0]?.originalText}
+              />
             </p>
             <p
               className="utterance translation"
               data-lang={lastTwoResults[0]?.translationLang}
             >
               {lastTwoResults[0]?.translation}
-              <SpeakButton speech={lastTwoResults[0]?.translation} />
+              <SpeakButton
+                isTranslation={true}
+                speech={lastTwoResults[0]?.translation}
+              />
             </p>
           </div>
           <div
@@ -533,17 +437,17 @@ function App() {
               data-lang={lastTwoResults[0]?.originalLang}
             >
               {lastTwoResults[1]?.originalText}
-              <SpeakButton />
+              <SpeakButton isTranslation={false} />
             </p>
             <p
               className="utterance translation"
               data-lang={lastTwoResults[0]?.translationLang}
             >
               {lastTwoResults[1]?.translation}
-              <SpeakButton />
+              <SpeakButton isTranslation={true} />
             </p>
           </div>
-          <p ref={lastParagraphRef}></p>
+          <p className="lastParagraph" ref={lastParagraphRef}></p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
         </div>
@@ -589,9 +493,14 @@ function SvgBackground() {
   );
 }
 
-function SpeakButton({ speech }) {
+function SpeakButton({ speech, isTranslation }) {
   return speech && "speechSynthesis" in window ? (
-    <IconButton className="btnSpeak" onClick={speak} onTouchStart={speak}>
+    <IconButton
+      style={{ marginLeft: isTranslation ? 10 : -10 }}
+      className="btnSpeak"
+      onClick={speak}
+      onTouchEnd={speak}
+    >
       <SpeakIcon />
     </IconButton>
   ) : null;

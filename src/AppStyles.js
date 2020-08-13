@@ -1,7 +1,7 @@
 import styled from "styled-components/macro";
 
 const PAPER_MARGINTOP_EMS = 2;
-const CONTROLS_HEIGHT_EMS = 5;
+const CONTROLS_HEIGHT_EMS = 4;
 const BREAKPOINT_TWOROWS = 552;
 
 export const AppStyles = styled.div`
@@ -31,10 +31,11 @@ export const AppStyles = styled.div`
       height: ${CONTROLS_HEIGHT_EMS}em;
     }
     padding: 1em;
-    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    align-content: space-between;
     justify-content: center;
-    grid-gap: 1em 2em;
+    grid-gap: 0.5em 0.5em;
     margin-top: 2em;
     .swapBtnWrapper {
       display: grid;
@@ -86,7 +87,7 @@ export const AppStyles = styled.div`
       align-items: start;
       justify-items: left;
       grid-gap: 11px;
-      p {
+      p:not(.lastParagraph) {
         height: min-content;
       }
 
@@ -151,5 +152,14 @@ export const AppStyles = styled.div`
       top: 0;
       bottom: 0;
     }
+  }
+  .btnStartWrapper {
+    grid-column: 1 / -1;
+    button {
+      width: 100%;
+    }
+  }
+  .lastParagraph {
+    height: 15vh;
   }
 `;
