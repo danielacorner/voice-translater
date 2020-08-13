@@ -2,7 +2,6 @@ import styled from "styled-components/macro";
 
 const PAPER_MARGINTOP_EMS = 2;
 const CONTROLS_HEIGHT_EMS = 8;
-const BREAKPOINT_TWOROWS = 552;
 
 export const AppStyles = styled.div`
   min-height: 100vh;
@@ -72,13 +71,8 @@ export const AppStyles = styled.div`
       overflow: auto;
       padding: 1.4em 1em 1em 5em;
       max-height: calc(
-        100vh - ${3 * PAPER_MARGINTOP_EMS + 2 * CONTROLS_HEIGHT_EMS}em
+        100vh - ${3 * PAPER_MARGINTOP_EMS + CONTROLS_HEIGHT_EMS}em
       );
-      @media (min-width: ${BREAKPOINT_TWOROWS}px) {
-        max-height: calc(
-          100vh - ${3 * PAPER_MARGINTOP_EMS + CONTROLS_HEIGHT_EMS}em
-        );
-      }
       margin-top: ${PAPER_MARGINTOP_EMS}em;
       min-height: 80px;
       align-items: start;
@@ -116,6 +110,7 @@ export const AppStyles = styled.div`
       display: flex;
       flex-direction: column;
       align-items: start;
+      font-size: 1.1em;
       &.last {
         padding-bottom: 2em;
       }
@@ -148,7 +143,7 @@ export const AppStyles = styled.div`
       left: -68px;
       height: 48px;
       top: calc(50% - 24px);
-      color: rgba(0, 0, 0, 0.4);
+      color: rgba(0, 0, 0, 0.3);
     }
   }
   .btnStartWrapper {
