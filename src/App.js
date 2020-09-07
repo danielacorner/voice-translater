@@ -27,10 +27,7 @@ const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
 
 const ChangeLanguage = (props) => (
-  <Select
-    value={props.lang}
-    onChange={(e) => props.handleChangeLanguages(e.target.value)}
-  >
+  <Select value={props.lang} onChange={props.handleChangeLanguages}>
     {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
       <MenuItem key={CODE} value={CODE}>
         {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
@@ -252,7 +249,7 @@ function App() {
       // auto-scroll to the bottom
       lastParagraphRef.current.scrollIntoView({
         behavior: "smooth",
-        block: "start",
+        block: "end",
         inline: "start",
       });
     }
