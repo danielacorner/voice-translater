@@ -105,27 +105,46 @@ function App() {
   if (recognition) {
     recognition.interimResults = true;
   }
+
+  const secondLastSpeechItem = speechArr[speechArr.length - 2];
+  // when we get a final (non-interim) result, translate it
   useEffect(() => {
-    const setInterimResult = (res) => {
-      const lastSpeechItem = speechArr.slice(-1)[0];
-      // we're in "interim mode" if we're waiting for the speaker to finish
-      const isInterimMode = !Boolean(lastSpeechItem?.translation);
+    if (!secondLastSpeechItem) {
+      return;
+    }
+    const { translation, originalText, originalLang } = secondLastSpeechItem;
+    // if it hasn't been translated... translate it
+    if (!translation) {
+      fetch(
+        `${SCRIPT_URL}?source=${originalLang}&target=${targetLang}&q=${originalText}`
+      )
+        .then((resp) => resp.text())
+        .then((resp) => {
+          // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
+          const jsonText = resp.slice("callback(".length, -1);
+          const { sourceText, translatedText } = JSON.parse(jsonText);
 
-      setSpeechArr([
-        ...(isInterimMode
-          ? // modify the last item in the array
-            speechArr.slice(0, -1)
-          : // add the interim result to the end
-            speechArr),
-        {
-          originalText: res,
-          originalLang: lang,
-          translation: null,
-          translationLang: null,
-        },
-      ]);
-    };
+          setSpeechArr((prev) => [
+            ...prev.slice(0, -2), // all but two last items
+            {
+              translation: translatedText,
+              translationLang: targetLang,
+              originalText: sourceText,
+              originalLang,
+            },
+            ...prev.slice(-1), // last item
+          ]);
 
+          setApiErr(null);
+        })
+        .catch((err) => {
+          setApiErr(err);
+        });
+    }
+  }, [secondLastSpeechItem, lang, targetLang]);
+
+  // handle start / pause
+  useEffect(() => {
     const handleResult = (e) => {
       // get the transcript
       const transcript = Array.from(e.results)
@@ -139,37 +158,16 @@ function App() {
 
       const isFinal = Array.from(e.results).some((result) => result.isFinal);
 
-      if (isPaused) {
-        return;
-      } else if (isFinal) {
-        fetch(
-          `${SCRIPT_URL}?source=${lang}&target=${targetLang}&q=${transcript}`
-        )
-          .then((resp) => resp.text())
-          .then((resp) => {
-            // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
-            const jsonText = resp.slice("callback(".length, -1);
-            const { sourceText, translatedText } = JSON.parse(jsonText);
-            setSpeechArr((prev) => [
-              ...prev.slice(0, -1),
-              {
-                translation: translatedText,
-                translationLang: targetLang,
-                originalText: sourceText,
-                originalLang: lang,
-              },
-            ]);
-            // remove the interim result
-            // setInterimResult("");
-            setApiErr(null);
-          })
-          .catch((err) => {
-            setApiErr(err);
-          });
-      } else if (!isFinal) {
-        // show the interim results
-        setInterimResult(transcriptCapitalized);
-      }
+      setSpeechArr((prev) => [
+        // if it's final, add a new item, else modify the last item
+        ...(isFinal ? prev : prev.slice(0, -1)),
+        {
+          originalText: isFinal ? null : transcriptCapitalized,
+          originalLang: lang,
+          translation: null,
+          translationLang: null,
+        },
+      ]);
     };
 
     if (!recognition) {
