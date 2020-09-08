@@ -57,6 +57,7 @@ function App() {
   const [apiErr, setApiErr] = useState(null);
   const [speechArr, setSpeechArr] = useState([
     // {
+    // id:1,
     //   translation:
     //     "한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 한국어 ",
     //   originalText:
@@ -103,46 +104,8 @@ function App() {
     recognition.interimResults = true;
   }
 
-  const secondLastSpeechItem = speechArr[speechArr.length - 2];
-  // when we get a final (non-interim) result, translate it
-  useEffect(() => {
-    if (!secondLastSpeechItem) {
-      return;
-    }
-    const { translation, originalText, originalLang } = secondLastSpeechItem;
-    // if it hasn't been translated... translate it
-    if (!translation) {
-      fetch(
-        `${SCRIPT_URL}?source=${originalLang}&target=${targetLang}&q=${originalText}`
-      )
-        .then((resp) => resp.text())
-        .then((resp) => {
-          // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
-          const jsonText = resp.slice("callback(".length, -1);
-          const { sourceText, translatedText } = JSON.parse(jsonText);
-
-          setSpeechArr((prev) => [
-            ...prev.slice(0, -2), // all but two last items
-            {
-              translation: translatedText,
-              translationLang: targetLang,
-              originalText: sourceText,
-              originalLang,
-            },
-            ...prev.slice(-1), // last item
-          ]);
-
-          setApiErr(null);
-        })
-        .catch((err) => {
-          setApiErr(err);
-        });
-    }
-  }, [secondLastSpeechItem, lang, targetLang]);
-
-  // handle start / pause
-  useEffect(() => {
-    const handleResult = (e) => {
+  const handleResult = React.useCallback(
+    (e) => {
       // get the transcript
       const transcript = Array.from(e.results)
         .map((result) => result[0])
@@ -155,18 +118,23 @@ function App() {
 
       const isFinal = Array.from(e.results).some((result) => result.isFinal);
 
-      setSpeechArr((prev) => [
+      setSpeechArr([
         // if it's final, add a new item, else modify the last item
-        ...(isFinal ? prev : prev.slice(0, -1)),
+        ...(isFinal ? speechArr : speechArr.slice(0, -1)),
         {
+          id: isFinal ? speechArr.length : speechArr.length - 1,
           originalText: isFinal ? null : transcriptCapitalized,
           originalLang: lang,
           translation: null,
           translationLang: null,
         },
       ]);
-    };
+    },
+    [lang, speechArr]
+  );
 
+  // handle start / pause
+  useEffect(() => {
     if (!recognition) {
       // nada
     } else if (isPaused) {
@@ -187,7 +155,7 @@ function App() {
         recognition.removeEventListener("end", recognition.start);
       }
     };
-  }, [recognition, isPaused, targetLang, lang, speechArr]);
+  }, [recognition, isPaused, targetLang, lang, handleResult]);
 
   const handleClick = () => {
     if (recognition && !recogStarted.current) {
@@ -255,8 +223,6 @@ function App() {
     }
   }, [speechArr, shouldAutoScroll]);
 
-  const speechArrWithoutLastTwoResults = speechArr.slice(0, -2);
-  const lastTwoResults = speechArr.slice(-2);
   const isTranslateDisabled = Boolean(/* !apiKey || */ apiErr);
   return (
     <AppStyles className="App" overflowPx={overflowPx}>
@@ -324,91 +290,15 @@ function App() {
           onTouchMove={handleScroll}
         >
           <SvgBackground />
-
-          {speechArrWithoutLastTwoResults.map(
-            (speech, idx) => (
-              // typeof speech === "object" ? (
-              <div
-                className={`translatedTextWrapper${
-                  speech.translation ? " withTranslation" : ""
-                }`}
-                key={`${speech.translation}-${idx}`}
-              >
-                <p
-                  className={`utterance originalText`}
-                  data-lang={speech.originalLang}
-                >
-                  {speech.originalText}
-                  <SpeakButton
-                    isTranslation={false}
-                    speech={speech.originalText}
-                  />
-                </p>
-                <p
-                  className="utterance translation"
-                  data-lang={speech.translationLang}
-                  // onClick={speak}
-                  // onTouchStart={speak}
-                >
-                  {speech.translation}
-                  <SpeakButton
-                    isTranslation={true}
-                    speech={speech.translation}
-                  />
-                </p>
-              </div>
-            )
-            // ) : (
-            //   <p key={`${speech}-${idx}`}>{speech}</p>
-            // )
-          )}
-          {/* keep the last two results outside the map to allow separate rendering and animation  */}
-          <div
-            className={`translatedTextWrapper${
-              lastTwoResults[0]?.translation ? " withTranslation" : ""
-            }`}
-          >
-            <p
-              className={`utterance originalText`}
-              data-lang={lastTwoResults[0]?.originalLang}
-            >
-              {lastTwoResults[0]?.originalText}
-              <SpeakButton
-                isTranslation={false}
-                speech={lastTwoResults[0]?.originalText}
-              />
-            </p>
-            <p
-              className="utterance translation"
-              data-lang={lastTwoResults[0]?.translationLang}
-            >
-              {lastTwoResults[0]?.translation}
-              <SpeakButton
-                isTranslation={true}
-                speech={lastTwoResults[0]?.translation}
-              />
-            </p>
-          </div>
-          <div
-            className={`translatedTextWrapper last${
-              lastTwoResults[1]?.translation ? " withTranslation" : ""
-            }`}
-          >
-            <p
-              className={`utterance originalText`}
-              data-lang={lastTwoResults[0]?.originalLang}
-            >
-              {lastTwoResults[1]?.originalText}
-              <SpeakButton isTranslation={false} />
-            </p>
-            <p
-              className="utterance translation"
-              data-lang={lastTwoResults[0]?.translationLang}
-            >
-              {lastTwoResults[1]?.translation}
-              <SpeakButton isTranslation={true} />
-            </p>
-          </div>
+          {speechArr.map((speech, idx) => (
+            <SpeechItem
+              key={`${speech.id}`}
+              speech={speech}
+              setApiErr={setApiErr}
+              targetLang={targetLang}
+              isFinal={idx !== speechArr.length - 1}
+            />
+          ))}
           <p className="lastParagraph" ref={lastParagraphRef}></p>
           <div className="leftMargin line1"></div>
           <div className="leftMargin line2"></div>
@@ -469,3 +359,63 @@ function SpeakButton({ speech, isTranslation }) {
 }
 
 export default App;
+
+function SpeechItem({ speech: initialSpeech, setApiErr, targetLang, isFinal }) {
+  const [finalSpeech, setFinalSpeech] = useState(null);
+  // once we finish speaking, fetch & use the translation
+  const speech = finalSpeech || initialSpeech;
+
+  const didFetch = useRef(false);
+  const { translation, originalText, originalLang, translationLang } = speech;
+
+  useEffect(() => {
+    // if it hasn't been translated... translate it
+    if (!didFetch.current && isFinal) {
+      didFetch.current = true;
+      fetch(
+        `${SCRIPT_URL}?source=${originalLang}&target=${targetLang}&q=${originalText}`
+      )
+        .then((resp) => resp.text())
+        .then((resp) => {
+          // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
+          const jsonText = resp.slice("callback(".length, -1);
+          const { sourceText, translatedText } = JSON.parse(jsonText);
+
+          setFinalSpeech({
+            translation: translatedText,
+            translationLang: targetLang,
+            originalText: sourceText,
+            originalLang,
+          });
+
+          setApiErr(null);
+        })
+        .catch((err) => {
+          setApiErr(JSON.stringify(err));
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinal]);
+
+  return originalText === "null" ? null : (
+    <div
+      className={`translatedTextWrapper${
+        translation ? " withTranslation" : ""
+      }`}
+    >
+      <p className={`utterance originalText`} data-lang={originalLang}>
+        {originalText}
+        <SpeakButton isTranslation={false} speech={originalText} />
+      </p>
+      <p
+        className="utterance translation"
+        data-lang={translationLang}
+        // onClick={speak}
+        // onTouchStart={speak}
+      >
+        {translation}
+        <SpeakButton isTranslation={true} speech={translation} />
+      </p>
+    </div>
+  );
+}
