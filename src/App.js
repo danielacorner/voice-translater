@@ -17,23 +17,34 @@ import { AppStyles } from "./AppStyles";
 import { LANGUAGES, MAX_LISTITEM_LENGTH } from "./utils/constants";
 import useNoSleep from "use-no-sleep";
 import { speak } from "./utils/speechSynthesis";
-
+// https://dev.to/robertchen/how-to-use-google-translate-api-27l9
+const googleTranslate = require("google-translate")(
+  process.env.REACT_APP_GOOGLE_API_KEY,
+  {}
+);
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 const SpeechToText = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
+// translate API
+// const SCRIPT_URL = `https://translation.googleapis.com/language/translate/v2`;
+// google script
+// const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbwfKgXwgAAehL_iKBzQ7H6A5I29dLswq5mMVDVi6fKFbIGcn-4/exec`;
 
 const ChangeLanguage = (props) => (
   <Select value={props.lang} onChange={props.handleChangeLanguages}>
-    {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
-      <MenuItem key={CODE} value={CODE}>
-        {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
-        {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
-      </MenuItem>
-    ))}
+    {Object.values(LANGUAGES)
+      .map(({ CODE, DISPLAY }) =>
+        CODE ? (
+          <MenuItem key={CODE} value={CODE}>
+            {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
+            {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
+          </MenuItem>
+        ) : null
+      )
+      .filter(Boolean)}
   </Select>
 );
 
@@ -44,12 +55,16 @@ const ChangeTargetLanguage = (props) => (
     disabled={props.isTranslateDisabled}
     onChange={props.handleChangetargetLang}
   >
-    {Object.values(LANGUAGES).map(({ CODE, DISPLAY }) => (
-      <MenuItem key={CODE} value={CODE}>
-        {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
-        {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
-      </MenuItem>
-    ))}
+    {Object.values(LANGUAGES)
+      .map(({ CODE, DISPLAY }) =>
+        CODE ? (
+          <MenuItem key={CODE} value={CODE}>
+            {DISPLAY.slice(0, MAX_LISTITEM_LENGTH).trim()}
+            {DISPLAY.length > MAX_LISTITEM_LENGTH ? "..." : ""}
+          </MenuItem>
+        ) : null
+      )
+      .filter(Boolean)}
   </Select>
 );
 
@@ -87,17 +102,22 @@ function App() {
 
   useNoSleep(started);
 
-  // TEST ANIMATION
+  // TEST SPEECH INPUT
   // useEffect(() => {
   //   setInterval(() => {
   //     setSpeechArr((p) => [
   //       ...p,
   //       {
-  //         originalText: "hey test",
-  //         translation: "heyheyhey",
+  //         // originalText: "hey test",
+  //         originalText: "한국어",
+  //         translation: null,
+  //         id: p.length + 1,
+  //         source: lang,
+  //         target: targetLang,
   //       },
   //     ]);
-  //   }, 1 * 1000);
+  //   }, 1000 * 4);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, []);
 
   if (recognition) {
@@ -372,27 +392,31 @@ function SpeechItem({ speech: initialSpeech, setApiErr, targetLang, isFinal }) {
     // if it hasn't been translated... translate it
     if (!didFetch.current && isFinal) {
       didFetch.current = true;
-      fetch(
-        `${SCRIPT_URL}?source=${originalLang}&target=${targetLang}&q=${originalText}`
-      )
-        .then((resp) => resp.text())
-        .then((resp) => {
-          // resp is string "callback({sourceText: 'blabla', translatedText: 'blublu'})"
-          const jsonText = resp.slice("callback(".length, -1);
-          const { sourceText, translatedText } = JSON.parse(jsonText);
+      googleTranslate.translate(
+        originalText,
+        originalLang,
+        targetLang,
+        function (err, translationResponse) {
+          const {
+            detectedSourceLanguage,
+            originalText: originalTextResponse,
+            translatedText,
+          } = translationResponse;
 
           setFinalSpeech({
             translation: translatedText,
             translationLang: targetLang,
-            originalText: sourceText,
-            originalLang,
+            originalText: originalTextResponse,
+            originalLang: detectedSourceLanguage,
           });
 
-          setApiErr(null);
-        })
-        .catch((err) => {
-          setApiErr(JSON.stringify(err));
-        });
+          if (err) {
+            setApiErr(JSON.stringify(err));
+          } else {
+            setApiErr(null);
+          }
+        }
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFinal]);
