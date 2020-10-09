@@ -397,18 +397,20 @@ function SpeechItem({ speech: initialSpeech, setApiErr, targetLang, isFinal }) {
         originalLang,
         targetLang,
         function (err, translationResponse) {
-          const {
-            detectedSourceLanguage,
-            originalText: originalTextResponse,
-            translatedText,
-          } = translationResponse;
+          if (translationResponse) {
+            const {
+              detectedSourceLanguage,
+              originalText: originalTextResponse,
+              translatedText,
+            } = translationResponse;
 
-          setFinalSpeech({
-            translation: translatedText,
-            translationLang: targetLang,
-            originalText: originalTextResponse,
-            originalLang: detectedSourceLanguage,
-          });
+            setFinalSpeech({
+              translation: translatedText,
+              translationLang: targetLang,
+              originalText: originalTextResponse,
+              originalLang: detectedSourceLanguage,
+            });
+          }
 
           if (err) {
             setApiErr(JSON.stringify(err));
